@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.6.1
+  sdk: '>=3.6.1 <4.0.0'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -34,10 +34,16 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+
+  # Firebase dependencies
   firebase_core: ^3.10.1
   firebase_auth: ^5.4.1
   firebase_storage: ^12.4.1
   firebase_messaging: ^15.2.1
+
+  # Additional dependencies for login/signup flow and state management
+  google_sign_in: ^6.1.0
+  provider: ^6.0.5
 
 dev_dependencies:
   flutter_test:
@@ -91,3 +97,14 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# NOTE:
+# If you encounter issues with CocoaPods (e.g., an error stating that
+# "CocoaPods's specs repository is too out-of-date to satisfy dependencies"),
+# follow these steps:
+# 1. Open a terminal and navigate to the ios directory:
+#      cd ios
+# 2. Update the CocoaPods specs repository:
+#      pod repo update
+# 3. Install the pods:
+#      pod install
