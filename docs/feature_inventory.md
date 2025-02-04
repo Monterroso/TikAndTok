@@ -1,0 +1,96 @@
+# Feature Inventory for D&D TikTok Clone
+
+This document tracks all implemented and planned features for the application. It lists features by priority (Must-Have, Should-Have, Could-Have) with detailed locations and sub-tasks. This inventory acts as the single source of truth on what exists and what each feature does.
+
+## Must-Have Features
+
+- [ ] **User Authentication & Profile Management**  
+  *Description:* Enable users to securely register, log in, and manage their profiles using Firebase Authentication.  
+  **Sub-Tasks:**
+  - [ ] Implement sign-up (email/password and/or social logins)  
+    *Location:* `lib/services/auth_service.dart`  
+  - [ ] Implement login and logout flows  
+    *Location:* `lib/screens/login_screen.dart`
+  - [ ] Ensure session persistence and error handling  
+  - [ ] Create a basic user profile screen for viewing/updating profile info  
+    *Location:* `lib/screens/profile_screen.dart`
+
+- [ ] **Core Video Feed & Playback**  
+  *Description:* Provide a seamless, scrollable video feed as the primary interface for content discovery.  
+  **Sub-Tasks:**
+  - [ ] Design and implement a swipeable UI for continuous video exploration  
+    *Location:* `lib/screens/video_feed_screen.dart`
+  - [ ] Integrate video playback with smooth transitions and auto-play  
+  - [ ] Optimize performance for smartphone usage (especially iOS)
+
+- [ ] **Basic Video Interaction (Like & Comment)**  
+  *Description:* Enable users to interact with videos by liking and commenting.  
+  **Sub-Tasks:**
+  - [ ] Implement the like functionality with real-time UI updates  
+    *Location:* `lib/widgets/video_interaction.dart`
+  - [ ] Create and integrate a basic comment interface with Firestore support  
+    *Location:* `lib/screens/video_details_screen.dart`
+  - [ ] Ensure immediate feedback (e.g., icon animations) during interactions
+
+- [ ] **Viewing & Managing Saved Videos**  
+  *Description:* Allow users to bookmark and manage their favorite videos for quick retrieval later.  
+  **Sub-Tasks:**
+  - [ ] Create a dedicated UI section for saved videos  
+    *Location:* `lib/screens/saved_videos_screen.dart`
+  - [ ] Implement functionality to add, remove, or update saved items (sync with Firestore)
+
+## Should-Have Features
+
+- [ ] **Filtering Videos by D&D Categories**  
+  *Description:* Allow users to narrow down the video feed by specific content categories related to tabletop RPGs.  
+  **Sub-Tasks:**
+  - [ ] Define and implement the following categories and tags:
+    - Campaign Chronicles  
+    - DM Tips & Tricks  
+    - Player Highlights  
+    - Dice & Mechanics  
+    - DIY & Homebrew  
+    - Cosplay & Fan Art  
+  - [ ] Attach metadata/tags to videos in `lib/models/video.dart`
+  - [ ] Build a filtering UI that queries Firestore based on selected tags  
+    *Location:* `lib/screens/filter_screen.dart`
+
+- [ ] **Saving/Bookmarking Video Content**  
+  *Description:* Let users bookmark their favorite videos for inspiration and future reference.  
+  **Sub-Tasks:**
+  - [ ] Develop a bookmarking feature through a "Save" button on video cards  
+    *Location:* `lib/widgets/video_card.dart`
+  - [ ] Persist saved items in the user's profile collection in Firestore
+
+- [ ] **Collection Creation for Saved Content**  
+  *Description:* Permit users to organize saved videos into manageable, custom collections.  
+  **Sub-Tasks:**
+  - [ ] Build a UI flow for creating, editing, and deleting collections  
+    *Location:* `lib/screens/collections_screen.dart`
+  - [ ] Implement drag-and-drop functionality or tagging to add videos into collections  
+  - [ ] Synchronize collections data with Firestore
+
+## Could-Have Features
+
+- [ ] **Advanced Content Recommendations**  
+  *Description:* Offer personalized video suggestions based on the user's viewing history and interactions.  
+  **Sub-Tasks:**
+  - [ ] Develop a recommendation algorithm citing historical data
+  - [ ] Integrate recommendations into the home feed dynamically
+
+- [ ] **Enhanced Community Engagement**  
+  *Description:* Deepen community interactions by offering features such as threaded discussions, additional reaction options, and content sharing across social platforms.  
+  **Sub-Tasks:**
+  - [ ] Implement threaded comments on videos  
+    *Location:* `lib/screens/video_details_screen.dart`
+  - [ ] Offer additional reaction emojis or icons  
+  - [ ] Integrate functionality that allows sharing posts externally
+
+- [ ] **Analytics & Trending Content**  
+  *Description:* Provide insights into trending topics and content performance to help users discover popular or emerging trends.  
+  **Sub-Tasks:**
+  - [ ] Build a dashboard for displaying trending tags and popular videos  
+  - [ ] Analyze user engagement data to power trends and recommendations  
+  - [ ] Display simple analytics summaries for video performance
+
+--- 
