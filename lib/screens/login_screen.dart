@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../widgets/auth_fields.dart';
 import '../widgets/auth_buttons.dart';
+import '../widgets/auth_snackbars.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -65,11 +66,13 @@ class _LoginScreenState extends State<LoginScreen> {
           password: _passwordController.text,
         );
       }
-      // No need to navigate, AuthWrapper will handle it
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
+          VerificationSnackBar(
+            message: e.toString(),
+            context: context,
+          ),
         );
       }
     } finally {

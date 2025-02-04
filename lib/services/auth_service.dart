@@ -17,6 +17,9 @@ class AuthService {
   /// Current user getter
   User? get currentUser => _auth.currentUser;
 
+  /// Check if user's email is verified
+  bool get isEmailVerified => _auth.currentUser?.emailVerified ?? false;
+
   /// Sign in with email and password
   Future<UserCredential> signInUser({
     required String email,
@@ -27,6 +30,13 @@ class AuthService {
         email: email,
         password: password,
       );
+
+      // Check if email is verified
+      if (!credential.user!.emailVerified) {
+        await signOutUser();
+        throw 'Please verify your email before signing in. Check your inbox for the verification link.';
+      }
+
       return credential;
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
@@ -42,12 +52,12 @@ class AuthService {
           throw 'An error occurred while signing in: ${e.message}';
       }
     } catch (e) {
-      throw 'An unexpected error occurred: $e';
+      throw e.toString();
     }
   }
 
   /// Sign up with email and password
-  Future<UserCredential> signUpUser({
+  Future<void> signUpUser({
     required String email,
     required String password,
   }) async {
@@ -57,10 +67,13 @@ class AuthService {
         password: password,
       );
       
-      // Optionally send email verification
+      // Send email verification
       await credential.user?.sendEmailVerification();
       
-      return credential;
+      // Sign out until email is verified
+      await signOutUser();
+      
+      throw 'Please check your email to verify your account before signing in.';
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
         case 'weak-password':
@@ -75,7 +88,20 @@ class AuthService {
           throw 'An error occurred while signing up: ${e.message}';
       }
     } catch (e) {
-      throw 'An unexpected error occurred: $e';
+      throw e.toString();
+    }
+  }
+
+  /// Resend verification email
+  Future<void> resendVerificationEmail() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) throw 'No user is currently signed in.';
+      if (user.emailVerified) throw 'Email is already verified.';
+      
+      await user.sendEmailVerification();
+    } catch (e) {
+      throw 'Failed to resend verification email: $e';
     }
   }
 
@@ -122,7 +148,7 @@ class AuthService {
           throw 'An error occurred while signing in with Google: ${e.message}';
       }
     } catch (e) {
-      throw 'An unexpected error occurred during Google sign in: $e';
+      throw e.toString();
     }
   }
 
@@ -152,7 +178,7 @@ class AuthService {
           throw 'An error occurred while sending password reset email: ${e.message}';
       }
     } catch (e) {
-      throw 'An unexpected error occurred: $e';
+      throw e.toString();
     }
   }
 }
