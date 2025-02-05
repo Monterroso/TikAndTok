@@ -6,8 +6,6 @@ class Comment {
   final String id;
   final String videoId;
   final String userId;
-  final String username;
-  final String? profilePictureUrl;
   final String message;
   final DateTime timestamp;
 
@@ -15,8 +13,6 @@ class Comment {
     required this.id,
     required this.videoId,
     required this.userId,
-    required this.username,
-    this.profilePictureUrl,
     required this.message,
     required this.timestamp,
   });
@@ -36,11 +32,6 @@ class Comment {
       throw FormatException('User ID is required', doc.id);
     }
 
-    final username = data['username'] as String?;
-    if (username == null || username.isEmpty) {
-      throw FormatException('Username is required', doc.id);
-    }
-
     final message = data['message'] as String?;
     if (message == null || message.isEmpty) {
       throw FormatException('Message is required', doc.id);
@@ -56,8 +47,6 @@ class Comment {
       id: doc.id,
       videoId: videoId,
       userId: userId,
-      username: username,
-      profilePictureUrl: data['profilePictureUrl'] as String?,
       message: message,
       timestamp: timestamp.toDate(),
     );
@@ -68,10 +57,8 @@ class Comment {
     return {
       'videoId': videoId,
       'userId': userId,
-      'username': username,
       'message': message,
       'timestamp': Timestamp.fromDate(timestamp),
-      if (profilePictureUrl != null) 'profilePictureUrl': profilePictureUrl,
     };
   }
 
@@ -80,8 +67,6 @@ class Comment {
     String? id,
     String? videoId,
     String? userId,
-    String? username,
-    String? profilePictureUrl,
     String? message,
     DateTime? timestamp,
   }) {
@@ -89,8 +74,6 @@ class Comment {
       id: id ?? this.id,
       videoId: videoId ?? this.videoId,
       userId: userId ?? this.userId,
-      username: username ?? this.username,
-      profilePictureUrl: profilePictureUrl ?? this.profilePictureUrl,
       message: message ?? this.message,
       timestamp: timestamp ?? this.timestamp,
     );

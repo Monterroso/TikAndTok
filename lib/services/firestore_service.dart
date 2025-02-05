@@ -259,7 +259,7 @@ class FirestoreService {
     return _videosCollection
         .doc(videoId)
         .collection('comments')
-        .orderBy('timestamp', descending: true)
+        .orderBy('timestamp', descending: false)
         .snapshots()
         .map((snapshot) =>
             snapshot.docs.map((doc) => Comment.fromFirestore(doc)).toList());
@@ -272,26 +272,22 @@ class FirestoreService {
     required String message,
   }) async {
     try {
-      // Get user data for the comment
+      // Verify user exists
       final userDoc = await _usersCollection.doc(userId).get();
       if (!userDoc.exists) {
         throw 'Cannot add comment: User profile does not exist';
       }
-      final userData = userDoc.data() as Map<String, dynamic>;
 
       // Create the comment
       final commentData = {
         'videoId': videoId,
         'userId': userId,
-        'username': userData['displayName'] ?? 'Anonymous',
-        'profilePictureUrl': userData['photoURL'],
         'message': message,
         'timestamp': FieldValue.serverTimestamp(),
       };
 
       // Run in a transaction to ensure consistency
       await _firestore.runTransaction((transaction) async {
-        // Get the video document
         final videoRef = _videosCollection.doc(videoId);
         final videoDoc = await transaction.get(videoRef);
 
@@ -301,11 +297,14 @@ class FirestoreService {
 
         // Add the comment
         final commentsRef = videoRef.collection('comments');
-        transaction.set(commentsRef.doc(), commentData);
+        final newCommentRef = commentsRef.doc();
+        transaction.set(newCommentRef, commentData);
 
-        // Update comment count
-        final currentComments = (videoDoc.data()?['comments'] as num?)?.toInt() ?? 0;
-        transaction.update(videoRef, {'comments': currentComments + 1});
+        // Update video document with new comment count and timestamp
+        transaction.update(videoRef, {
+          'comments': FieldValue.increment(1),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
       });
     } catch (e) {
       throw 'Failed to add comment: $e';
@@ -332,16 +331,12 @@ class FirestoreService {
           throw 'Not authorized to delete this comment';
         }
 
-        // Get current comment count
-        final videoDoc = await transaction.get(videoRef);
-        if (!videoDoc.exists) {
-          throw 'Video not found';
-        }
-        final currentComments = (videoDoc.data()?['comments'] as num?)?.toInt() ?? 0;
-
-        // Delete comment and update count
+        // Delete comment and update count atomically
         transaction.delete(commentRef);
-        transaction.update(videoRef, {'comments': currentComments - 1});
+        transaction.update(videoRef, {
+          'comments': FieldValue.increment(-1),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
       });
     } catch (e) {
       throw 'Failed to delete comment: $e';
