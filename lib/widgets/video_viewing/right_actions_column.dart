@@ -1,23 +1,41 @@
 import 'package:flutter/material.dart';
+import '../../models/video.dart';
+import 'like_animation.dart';
 
-/// RightActionsColumn groups interactive buttons such as like, dislike, comments,
+/// RightActionsColumn groups interactive buttons such as like, comments,
 /// save, share, and music info vertically along the right edge.
 class RightActionsColumn extends StatelessWidget {
-  const RightActionsColumn({Key? key}) : super(key: key);
+  final Video video;
+  final String currentUserId;
+  final Function(bool) onLikeChanged;
+
+  const RightActionsColumn({
+    Key? key,
+    required this.video,
+    required this.currentUserId,
+    required this.onLikeChanged,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // Like button with a numerical count displayed below.
-        const _ActionButton(icon: Icons.thumb_up, count: 100),
-        const SizedBox(height: 20.0),
-        // Dislike button with a numerical count displayed below.
-        const _ActionButton(icon: Icons.thumb_down, count: 10),
+        // Like button with animation
+        LikeAnimation(
+          isLiked: video.isLikedByUser(currentUserId),
+          likeCount: video.likeCount,
+          onTap: () => onLikeChanged(!video.isLikedByUser(currentUserId)),
+        ),
         const SizedBox(height: 20.0),
         // Comments button with a numerical count displayed below.
-        const _ActionButton(icon: Icons.comment, count: 25),
+        _ActionButton(
+          icon: Icons.comment,
+          count: video.comments,
+          onTap: () {
+            // TODO: Implement comments functionality.
+          },
+        ),
         const SizedBox(height: 20.0),
         // Save button.
         IconButton(
@@ -48,15 +66,17 @@ class RightActionsColumn extends StatelessWidget {
 }
 
 /// _ActionButton is a reusable, private widget to render an icon button with a count.
-/// It is used for like, dislike, and comments buttons.
+/// It is used for comments and other countable actions.
 class _ActionButton extends StatelessWidget {
   final IconData icon;
   final int count;
+  final VoidCallback? onTap;
 
   const _ActionButton({
     Key? key,
     required this.icon,
     required this.count,
+    this.onTap,
   }) : super(key: key);
 
   @override
@@ -65,9 +85,7 @@ class _ActionButton extends StatelessWidget {
       children: [
         IconButton(
           icon: Icon(icon, color: Colors.white),
-          onPressed: () {
-            // TODO: Implement action for the button.
-          },
+          onPressed: onTap,
         ),
         Text(
           '$count',

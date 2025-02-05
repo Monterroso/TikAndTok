@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/video.dart';
+import 'dart:collection';
 
 /// Service class to handle all Firestore document operations related to user profiles.
 /// This service is responsible for:
@@ -200,5 +201,55 @@ class FirestoreService {
     } catch (e) {
       throw 'Failed to update video stats: $e';
     }
+  }
+
+  /// Toggles the like status of a video for a user
+  Future<void> toggleLike({
+    required String videoId,
+    required String userId,
+  }) async {
+    try {
+      // Run the update in a transaction to ensure consistency
+      await _firestore.runTransaction((transaction) async {
+        final videoRef = _videosCollection.doc(videoId);
+        final videoDoc = await transaction.get(videoRef);
+
+        if (!videoDoc.exists) {
+          throw 'Video not found';
+        }
+
+        final data = videoDoc.data() as Map<String, dynamic>;
+        final likedByList = (data['likedBy'] as List<dynamic>?) ?? [];
+        final likedBy = Set<String>.from(likedByList.map((e) => e.toString()));
+        
+        // Toggle like status
+        final wasLiked = likedBy.contains(userId);
+        if (wasLiked) {
+          likedBy.remove(userId);
+        } else {
+          likedBy.add(userId);
+        }
+
+        // Update the document
+        transaction.update(videoRef, {
+          'likedBy': likedBy.toList(),
+        });
+      });
+    } catch (e) {
+      throw 'Failed to toggle like: $e';
+    }
+  }
+
+  /// Stream of video likes for real-time updates
+  Stream<Set<String>> streamVideoLikes(String videoId) {
+    return _videosCollection
+        .doc(videoId)
+        .snapshots()
+        .map((doc) {
+          if (!doc.exists) return {};
+          final data = doc.data() as Map<String, dynamic>;
+          final likedByList = (data['likedBy'] as List<dynamic>?) ?? [];
+          return Set<String>.from(likedByList.map((e) => e.toString()));
+        });
   }
 }

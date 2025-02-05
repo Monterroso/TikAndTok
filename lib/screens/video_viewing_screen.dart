@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../services/firestore_service.dart';
 import '../models/video.dart';
 import '../widgets/video_viewing/video_feed.dart';
@@ -11,7 +12,7 @@ import '../widgets/video_viewing/custom_bottom_navigation_bar.dart';
 /// It sets up a layered UI using a full-screen stack:
 /// - The VideoFeed provides a swipeable list of full-screen videos.
 /// - The TopSearchButton is positioned at the top-right for searches.
-/// - The RightActionsColumn displays buttons like, dislike, comments, save, share, 
+/// - The RightActionsColumn displays buttons for like, comments, save, share, 
 ///   and music info in a vertical column on the right edge.
 /// - The CreatorInfoGroup shows the creator's profile picture, follow button, username,
 ///   and video title at the bottom-left.
@@ -25,6 +26,8 @@ class FrontPage extends StatefulWidget {
 
 class _FrontPageState extends State<FrontPage> {
   Video? _currentVideo;
+  final _firestoreService = FirestoreService();
+  final _currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
   void _handleVideoChanged(Video video) {
     if (!mounted) return;
@@ -36,15 +39,46 @@ class _FrontPageState extends State<FrontPage> {
     });
   }
 
+  Future<void> _handleLikeChanged(bool liked) async {
+    if (_currentVideo == null || _currentUserId == null) return;
+
+    try {
+      await _firestoreService.toggleLike(
+        videoId: _currentVideo!.id,
+        userId: _currentUserId,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to ${liked ? 'like' : 'unlike'} video: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_currentUserId == null) {
+      return const Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
+          child: Text(
+            'Please sign in to view videos',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
           // Debug information or VideoFeed
           StreamBuilder<List<Video>>(
-            stream: FirestoreService().streamVideos(),
+            stream: _firestoreService.streamVideos(),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
                 return Center(
@@ -126,11 +160,15 @@ class _FrontPageState extends State<FrontPage> {
           ),
           
           // RightActionsColumn holds the interactive buttons
-          const Positioned(
+          if (_currentVideo != null) Positioned(
             top: 100.0,
             right: 16.0,
             bottom: 100.0,
-            child: RightActionsColumn(),
+            child: RightActionsColumn(
+              video: _currentVideo!,
+              currentUserId: _currentUserId!,
+              onLikeChanged: _handleLikeChanged,
+            ),
           ),
           
           // CreatorInfoGroup displays creator details

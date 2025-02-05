@@ -13,6 +13,7 @@ class Video {
   final int comments;
   final DateTime createdAt;
   final Map<String, dynamic>? metadata;
+  final Set<String> likedBy;
 
   const Video({
     required this.id,
@@ -24,6 +25,7 @@ class Video {
     this.comments = 0,
     required this.createdAt,
     this.metadata,
+    this.likedBy = const {},
   });
 
   /// Creates a Video instance from a Firestore document
@@ -58,16 +60,21 @@ class Video {
       throw FormatException('Creation timestamp is required', doc.id);
     }
 
+    // Convert likedBy array from Firestore to Set
+    final likedByList = (data['likedBy'] as List<dynamic>?) ?? [];
+    final likedBy = Set<String>.from(likedByList.map((e) => e.toString()));
+
     return Video(
       id: doc.id,
       url: url,
       userId: userId,
       title: title,
       description: data['description'] ?? '',
-      likes: (data['likes'] as num?)?.toInt() ?? 0,
+      likes: likedBy.length, // Compute likes from likedBy set size
       comments: (data['comments'] as num?)?.toInt() ?? 0,
       createdAt: timestamp.toDate(),
       metadata: data['metadata'] as Map<String, dynamic>?,
+      likedBy: likedBy,
     );
   }
 
@@ -78,7 +85,7 @@ class Video {
       'userId': userId,
       'title': title,
       'description': description,
-      'likes': likes,
+      'likedBy': likedBy.toList(), // Convert Set to List for Firestore
       'comments': comments,
       'createdAt': Timestamp.fromDate(createdAt),
       if (metadata != null) 'metadata': metadata,
@@ -95,4 +102,10 @@ class Video {
       return false;
     }
   }
+
+  /// Check if a user has liked this video
+  bool isLikedByUser(String userId) => likedBy.contains(userId);
+
+  /// Get the total number of likes (computed from likedBy set)
+  int get likeCount => likedBy.length;
 }
