@@ -7,17 +7,22 @@ This document tracks all implemented and planned features for the application. I
 - [ ] **User Authentication & Profile Management**  
   *Description:* Enable users to securely register, log in, and manage their profiles using Firebase Authentication.  
   **Sub-Tasks:**
-  - [ ] Implement sign-up (email/password and/or social logins)  
+  - [✓] Implement sign-up (email/password and/or social logins)  
     *Location:* `lib/services/auth_service.dart`  
-  - [ ] Implement login and logout flows  
+  - [✓] Implement login and logout flows  
     *Location:* `lib/screens/login_screen.dart`
   - [ ] Ensure session persistence and error handling  
-  - [ ] Automatic user profile creation on signup (In Progress)
+  - [✓] Automatic user profile creation on signup
     *Location:* `functions/src/index.ts`
-    - Creates Firestore document with default fields
+    - Implemented and deployed Cloud Function
+    - Creates Firestore document with default fields:
+      - email (from Auth)
+      - username (derived from display name)
+      - bio (empty string)
+      - photoURL (from Auth or empty)
+      - createdAt & updatedAt timestamps
     - Handles data consistency between Auth and Firestore
-    - Generates default username from display name
-    - Pending deployment to Firebase
+    - Includes error handling and logging
   - [ ] Create a basic user profile screen for viewing/updating profile info  
     *Location:* `lib/screens/profile_screen.dart`
 

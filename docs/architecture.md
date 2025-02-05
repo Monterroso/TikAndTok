@@ -67,9 +67,14 @@ TikAndTok/
 - **Cloud Functions:**
   Firebase Cloud Functions handle server-side operations and automated tasks:
   - Located in `/functions` directory using TypeScript
-  - Implements automatic user profile creation on signup
-  - Handles data consistency between Auth and Firestore
-  - Uses v1 functions for auth triggers (v2 not yet supported for auth)
+  - Currently deployed functions:
+    - `createUserProfile`: Automatically creates a user profile document in Firestore when a new user signs up
+      - Triggers on Firebase Auth user creation
+      - Creates default profile with username derived from display name
+      - Sets up initial fields: email, username, bio, photoURL, createdAt, updatedAt
+  - Uses Node.js 20 runtime
+  - Implements error handling and logging
+  - Maintains data consistency between Auth and Firestore
 
 - **Reusable Widgets:**  
   Shared UI components are organized in `lib/widgets/` to avoid code duplication and maintain consistency:
