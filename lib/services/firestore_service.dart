@@ -67,13 +67,14 @@ class FirestoreService {
   Future<void> updateUserProfile({
     required String uid,
     String? displayName,
+    String? username,
     String? photoURL,
     String? bio,
   }) async {
     try {
       // Validate data if provided
-      if (displayName != null) {
-        final nameError = validateUsername(displayName);
+      if (username != null) {
+        final nameError = validateUsername(username);
         if (nameError != null) throw nameError;
       }
       if (bio != null) {
@@ -86,6 +87,7 @@ class FirestoreService {
       };
       
       if (displayName != null) updates['displayName'] = displayName;
+      if (username != null) updates['username'] = username;
       if (photoURL != null) updates['photoURL'] = photoURL;
       if (bio != null) updates['bio'] = bio;
 

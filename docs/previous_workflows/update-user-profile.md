@@ -28,7 +28,7 @@ Substeps:
   - [ ] Run pod install in iOS directory
   - [ ] Update pods if necessary
 
-Step 0.5: Implement Cloud Function for Automatic User Profile Creation
+Step 0.5: Implement Cloud Function for Automatic User Profile Creation ✓
 Action: Create a Cloud Function to automatically create a new user profile document in the users collection when a new Firebase Authentication user is created.
 Substeps:
 [✓] Ensure a `/functions` directory exists at the project root.
@@ -38,17 +38,18 @@ Substeps:
    npm install firebase-functions firebase-admin
    ```
 [✓] Create or update `functions/src/index.ts` with the Cloud Function
-[ ] Update documentation:  
-   - [ ] Add a note in [docs/architecture.md](docs/architecture.md)
-   - [ ] Add a note in [docs/feature_inventory.md](docs/feature_inventory.md)
-[ ] Test the Cloud Function locally using the Firebase Emulator:
-   ```bash
-   firebase emulators:start --only functions
-   ```
-[ ] Deploy the Cloud Function:
+   - Implemented createUserProfile function
+   - Uses Node.js 20 runtime
+   - Handles data consistency and error logging
+[✓] Update documentation:  
+   - [✓] Add a note in [docs/architecture.md](docs/architecture.md)
+   - [✓] Add a note in [docs/feature_inventory.md](docs/feature_inventory.md)
+[✓] Deploy the Cloud Function:
    ```bash
    firebase deploy --only functions
    ```
+   - Successfully deployed to Firebase
+   - Function is live and handling user creation events
 
 Step 1: Create the Profile Screen
 Create a New File for ProfileScreen

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:path/path.dart' as path;
 /// Service class to handle all Firebase Storage file operations.
 /// This service is responsible for:
 /// - File uploads
@@ -23,42 +24,49 @@ class FirebaseStorageService {
   static const String _profilePicturesPath = 'profile_pictures';
   static const int _maxFileSizeBytes = 5 * 1024 * 1024; // 5MB
 
-  /// Uploads a profile picture for a user
+  /// Uploads a profile image to Firebase Storage
   /// Returns the download URL of the uploaded image
-  /// Throws an error if the file is too large or invalid
-  Future<String> uploadProfilePicture({
+  Future<String> uploadProfileImage({
     required String uid,
-    required File imageFile,
+    required File file,
   }) async {
     try {
-      // Validate file size
-      final fileSize = await imageFile.length();
-      if (fileSize > _maxFileSizeBytes) {
-        throw 'File size exceeds 5MB limit';
+      // Create a reference to the profile picture location
+      final ref = _storage.ref().child('profile_pictures/$uid${path.extension(file.path)}');
+
+      // Delete the old profile picture if it exists
+      try {
+        await ref.delete();
+      } catch (e) {
+        // Ignore error if file doesn't exist
       }
 
-      // Create a reference to the profile picture location
-      final String fileName = '$uid.jpg';
-      final storageRef = _storage.ref().child('$_profilePicturesPath/$fileName');
-      
-      // Upload the file
-      await storageRef.putFile(
-        imageFile,
+      // Upload the new image
+      final uploadTask = await ref.putFile(
+        file,
         SettableMetadata(
-          contentType: 'image/jpeg',
+          contentType: 'image/${path.extension(file.path).substring(1)}',
           customMetadata: {
-            'uploadedAt': DateTime.now().toIso8601String(),
-            'userId': uid,
+            'uploaded_by': uid,
+            'timestamp': DateTime.now().toIso8601String(),
           },
         ),
       );
-      
+
       // Get and return the download URL
-      return await storageRef.getDownloadURL();
-    } on FirebaseException catch (e) {
-      throw 'Failed to upload profile picture: ${e.message}';
+      return await uploadTask.ref.getDownloadURL();
     } catch (e) {
       throw 'Failed to upload profile picture: $e';
+    }
+  }
+
+  /// Deletes a file from Firebase Storage
+  Future<void> deleteFile(String url) async {
+    try {
+      final ref = _storage.refFromURL(url);
+      await ref.delete();
+    } catch (e) {
+      throw 'Failed to delete file: $e';
     }
   }
 

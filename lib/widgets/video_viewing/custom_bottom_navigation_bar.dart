@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../screens/profile_screen.dart';
 
 /// CustomBottomNavigationBar sets up a fixed navigation bar at the bottom of the screen.
 /// It includes an upload button (centered) and a profile button (aligned to the right).
@@ -22,10 +23,20 @@ class CustomBottomNavigationBar extends StatelessWidget {
             child: const Icon(Icons.add, color: Colors.white),
           ),
           // Profile button aligned to the right.
-          const Expanded(
+          Expanded(
             child: Align(
               alignment: Alignment.centerRight,
-              child: Icon(Icons.person, color: Colors.white),
+              child: IconButton(
+                icon: const Icon(Icons.person, color: Colors.white),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ProfileScreen(),
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         ],
