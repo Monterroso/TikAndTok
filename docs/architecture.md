@@ -117,20 +117,22 @@ TikAndTok/
 
 ## Video Playback Implementation
 
-The video playback feature is implemented with the following components:
-
 1. **Video Model** (`models/video.dart`):
    - Handles Firestore document conversion
    - Validates required fields (url, userId, title)
    - Implements URL validation
    - Manages video metadata
    - Links videos to creator profiles via userId
+   - Manages likes using Set<String> for efficient storage
+   - Provides helper methods for like status and count
 
 2. **Video Feed** (`widgets/video_viewing/video_feed.dart`):
    - Uses PageView.builder for smooth vertical scrolling
    - Manages video state and transitions
    - Handles current video tracking
    - Provides video change notifications
+   - Implements double-tap to like functionality
+   - Shows heart animation on like actions
    - Prepares for creator data prefetching
 
 3. **Video Background** (`widgets/video_viewing/video_background.dart`):
@@ -147,16 +149,29 @@ The video playback feature is implemented with the following components:
    - Username/display name handling
    - Video title and description display
 
-5. **Front Page** (`screens/video_viewing_screen.dart`):
+5. **Like Animation** (`widgets/video_viewing/like_animation.dart`):
+   - Implements TikTok-style heart animations
+   - Handles both button and double-tap triggers
+   - Provides haptic feedback
+   - Shows popup animation at tap location
+   - Animates like count changes
+   - Manages animation states and cleanup
+
+6. **Front Page** (`screens/video_viewing_screen.dart`):
    - Integrates with Firestore for video data
    - Manages current video state
    - Coordinates video feed and creator info
+   - Handles optimistic updates for likes:
+     - Tracks pending updates in _optimisticLikes set
+     - Updates UI immediately
+     - Reverts on error with user feedback
    - Provides debug information during development
    - Manages UI layout with Stack widget
 
 The implementation follows these key principles:
 - Proper lifecycle management of video controllers
-- Real-time data streaming for creator profiles
+- Real-time data streaming for creator profiles and likes
+- Optimistic updates for responsive UI
 - Graceful error handling with user feedback
 - Debug information during development
 - Clear separation of concerns between data, playback, and UI
@@ -180,9 +195,19 @@ The implementation follows these key principles:
    → CreatorInfoGroup display
    ```
 
-3. **State Management**:
+3. **Like Action Flow**:
+   ```
+   User interaction (double-tap/button)
+   → Optimistic UI update
+   → Firestore transaction
+   → Real-time likes stream
+   → UI refresh on confirmation/error
+   ```
+
+4. **State Management**:
    - Video state managed by FrontPage
    - Profile data streamed directly in CreatorInfoGroup
+   - Like states managed with optimistic updates
    - Loading and error states handled at component level
 
 ## Error Handling
