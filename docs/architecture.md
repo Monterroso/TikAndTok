@@ -124,11 +124,14 @@ The video playback feature is implemented with the following components:
    - Validates required fields (url, userId, title)
    - Implements URL validation
    - Manages video metadata
+   - Links videos to creator profiles via userId
 
 2. **Video Feed** (`widgets/video_viewing/video_feed.dart`):
    - Uses PageView.builder for smooth vertical scrolling
-   - Manages a list of VideoBackground widgets
-   - Handles video transitions
+   - Manages video state and transitions
+   - Handles current video tracking
+   - Provides video change notifications
+   - Prepares for creator data prefetching
 
 3. **Video Background** (`widgets/video_viewing/video_background.dart`):
    - Manages video player lifecycle
@@ -136,18 +139,70 @@ The video playback feature is implemented with the following components:
    - Provides error handling with user-friendly messages
    - Shows loading states on black background
 
-4. **Front Page** (`screens/video_viewing_screen.dart`):
+4. **Creator Info Display** (`widgets/video_viewing/creator_info_group.dart`):
+   - Real-time creator profile streaming
+   - Loading states with skeleton UI
+   - Error handling with user feedback
+   - Profile picture display with fallbacks
+   - Username/display name handling
+   - Video title and description display
+
+5. **Front Page** (`screens/video_viewing_screen.dart`):
    - Integrates with Firestore for video data
+   - Manages current video state
+   - Coordinates video feed and creator info
    - Provides debug information during development
    - Manages UI layout with Stack widget
-   - Positions overlay UI elements
 
 The implementation follows these key principles:
 - Proper lifecycle management of video controllers
+- Real-time data streaming for creator profiles
 - Graceful error handling with user feedback
 - Debug information during development
-- Black background for consistent UI
-- Separation of concerns between data, playback, and UI
+- Clear separation of concerns between data, playback, and UI
+
+## Data Flow
+
+1. **Video Data Flow**:
+   ```
+   Firestore videos collection
+   → Video model
+   → VideoFeed
+   → Current video state in FrontPage
+   → CreatorInfoGroup
+   ```
+
+2. **Creator Profile Flow**:
+   ```
+   Video.userId
+   → Firestore users collection
+   → Real-time profile stream
+   → CreatorInfoGroup display
+   ```
+
+3. **State Management**:
+   - Video state managed by FrontPage
+   - Profile data streamed directly in CreatorInfoGroup
+   - Loading and error states handled at component level
+
+## Error Handling
+
+1. **Video Validation**:
+   - URL format checking
+   - Required field validation
+   - Creator existence verification
+
+2. **Profile Data**:
+   - Graceful handling of missing profiles
+   - Loading state display
+   - Clear error messages
+   - Fallback UI for missing data
+
+3. **User Experience**:
+   - Skeleton loading UI
+   - Informative error states
+   - Fallback profile pictures
+   - Default text for missing data
 
 ---
 

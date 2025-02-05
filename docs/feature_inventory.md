@@ -37,24 +37,38 @@ This document tracks all implemented and planned features for the application. I
     *Location:* `lib/widgets/video_viewing/custom_bottom_navigation_bar.dart`
 
 - [✓] **Core Video Feed & Playback**  
-  *Description:* Provide a seamless, scrollable video feed as the primary interface for content discovery.  
+  *Description:* Provide a seamless, scrollable video feed with integrated creator profiles as the primary interface for content discovery.  
   **Sub-Tasks:**
   - [✓] Design and implement video feed UI  
     *Location:* `lib/screens/video_viewing_screen.dart`, `lib/widgets/video_viewing/video_feed.dart`
     - Implemented vertical swipeable video feed
+    - Added smooth video transitions
     - Added debug information for development
+    - Integrated creator profile display
+      - Profile picture with fallback
+      - Username/display name
+      - Video title and description
   - [✓] Implement video playback  
     *Location:* `lib/widgets/video_viewing/video_background.dart`
     - Added video player with auto-play and looping
     - Implemented error handling for invalid videos
     - Added loading states and error messages
-  - [✓] Set up video data model
-    *Location:* `lib/models/video.dart`
+  - [✓] Set up video data model and integration
+    *Location:* `lib/models/video.dart`, `lib/widgets/video_viewing/creator_info_group.dart`
     - Created Video model with Firestore integration
     - Added URL validation
     - Implemented error handling for required fields
+    - Real-time profile data streaming
+    - Loading states with skeleton UI
+    - Error states with user feedback
+    - User existence verification
+  - [✓] System Integration
+    - Uses Firebase Storage for video URLs
+    - Uses Firestore for video metadata
+    - Integrates with user profiles
+    - Proper error handling and validation
 
-  *Note: Basic video playback and feed functionality is complete. Interactive features (likes, comments, etc.) will be implemented in the next phase.*
+  *Note: Core video playback, feed functionality, and profile integration are complete. Interactive features (likes, comments, etc.) will be implemented in the next phase.*
 
 - [ ] **Basic Video Interaction (Like & Comment)**  
   *Description:* Enable users to interact with videos by liking and commenting.  
@@ -125,5 +139,12 @@ This document tracks all implemented and planned features for the application. I
   - [ ] Build a dashboard for displaying trending tags and popular videos  
   - [ ] Analyze user engagement data to power trends and recommendations  
   - [ ] Display simple analytics summaries for video performance
+
+- [ ] **Upcoming Features and Optimizations**
+  - [ ] Video creator data prefetching
+  - [ ] Profile data caching
+  - [ ] Follow functionality
+  - [ ] Video interaction (likes, comments)
+  - [ ] Performance optimizations
 
 --- 
