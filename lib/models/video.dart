@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:http/http.dart' as http;
 
 /// Represents a video in the application.
 /// This model handles video metadata and provides conversion to/from Firestore.
@@ -28,16 +29,45 @@ class Video {
   /// Creates a Video instance from a Firestore document
   factory Video.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
+    
+    // Validate required fields
+    final url = data['url'] as String?;
+    if (url == null || url.isEmpty) {
+      throw FormatException('Video URL is required', doc.id);
+    }
+
+    // Validate URL format
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      throw FormatException('Invalid video URL format', url);
+    }
+
+    // Validate required string fields
+    final userId = data['userId'] as String?;
+    if (userId == null || userId.isEmpty) {
+      throw FormatException('User ID is required', doc.id);
+    }
+
+    final title = data['title'] as String?;
+    if (title == null || title.isEmpty) {
+      throw FormatException('Title is required', doc.id);
+    }
+
+    // Validate timestamp
+    final timestamp = data['createdAt'] as Timestamp?;
+    if (timestamp == null) {
+      throw FormatException('Creation timestamp is required', doc.id);
+    }
+
     return Video(
       id: doc.id,
-      url: data['url'] ?? '',
-      userId: data['userId'] ?? '',
-      title: data['title'] ?? '',
+      url: url,
+      userId: userId,
+      title: title,
       description: data['description'] ?? '',
-      likes: data['likes'] ?? 0,
-      comments: data['comments'] ?? 0,
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
-      metadata: data['metadata'],
+      likes: (data['likes'] as num?)?.toInt() ?? 0,
+      comments: (data['comments'] as num?)?.toInt() ?? 0,
+      createdAt: timestamp.toDate(),
+      metadata: data['metadata'] as Map<String, dynamic>?,
     );
   }
 
@@ -53,5 +83,16 @@ class Video {
       'createdAt': Timestamp.fromDate(createdAt),
       if (metadata != null) 'metadata': metadata,
     };
+  }
+
+  /// Check if the video URL is still valid
+  Future<bool> isUrlValid() async {
+    try {
+      final uri = Uri.parse(url);
+      final response = await http.head(uri);
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
   }
 }

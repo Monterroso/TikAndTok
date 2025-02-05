@@ -34,7 +34,9 @@ class FrontPage extends StatelessWidget {
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Text(
-                      'Debug: Firebase Error\n${snapshot.error}',
+                      'Debug: Firebase Error\n'
+                      '${snapshot.error is FormatException ? "Invalid video data: " : ""}'
+                      '${snapshot.error}',
                       style: const TextStyle(color: Colors.white54),
                       textAlign: TextAlign.center,
                     ),
@@ -57,7 +59,34 @@ class FrontPage extends StatelessWidget {
                   child: Padding(
                     padding: EdgeInsets.all(16.0),
                     child: Text(
-                      'Debug: No videos in Firebase\nCollection: videos\nExpected fields: url, userId, title, description',
+                      'Debug: No videos in Firebase\n'
+                      'Collection: videos\n'
+                      'Required fields:\n'
+                      '- url (string, valid URL)\n'
+                      '- userId (string)\n'
+                      '- title (string)\n'
+                      '- createdAt (timestamp)',
+                      style: TextStyle(color: Colors.white54),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                );
+              }
+
+              // Filter out videos with invalid URLs
+              final validVideos = videos.where((video) => 
+                video.url.startsWith('http://') || 
+                video.url.startsWith('https://')
+              ).toList();
+
+              if (validVideos.isEmpty) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text(
+                      'Debug: No valid video URLs found\n'
+                      'Videos exist but URLs are invalid\n'
+                      'URLs must start with http:// or https://',
                       style: TextStyle(color: Colors.white54),
                       textAlign: TextAlign.center,
                     ),
@@ -66,7 +95,7 @@ class FrontPage extends StatelessWidget {
               }
 
               return VideoFeed(
-                videoUrls: videos.map((video) => video.url).toList(),
+                videoUrls: validVideos.map((video) => video.url).toList(),
               );
             },
           ),
