@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/video.dart';
+import '../models/comment.dart';
 import 'dart:collection';
 
 /// Service class to handle all Firestore document operations related to user profiles.
@@ -251,5 +252,99 @@ class FirestoreService {
           final likedByList = (data['likedBy'] as List<dynamic>?) ?? [];
           return Set<String>.from(likedByList.map((e) => e.toString()));
         });
+  }
+
+  /// Streams comments for a specific video
+  Stream<List<Comment>> streamComments({required String videoId}) {
+    return _videosCollection
+        .doc(videoId)
+        .collection('comments')
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => Comment.fromFirestore(doc)).toList());
+  }
+
+  /// Adds a new comment to a video
+  Future<void> addComment({
+    required String videoId,
+    required String userId,
+    required String message,
+  }) async {
+    try {
+      // Get user data for the comment
+      final userDoc = await _usersCollection.doc(userId).get();
+      if (!userDoc.exists) {
+        throw 'Cannot add comment: User profile does not exist';
+      }
+      final userData = userDoc.data() as Map<String, dynamic>;
+
+      // Create the comment
+      final commentData = {
+        'videoId': videoId,
+        'userId': userId,
+        'username': userData['displayName'] ?? 'Anonymous',
+        'profilePictureUrl': userData['photoURL'],
+        'message': message,
+        'timestamp': FieldValue.serverTimestamp(),
+      };
+
+      // Run in a transaction to ensure consistency
+      await _firestore.runTransaction((transaction) async {
+        // Get the video document
+        final videoRef = _videosCollection.doc(videoId);
+        final videoDoc = await transaction.get(videoRef);
+
+        if (!videoDoc.exists) {
+          throw 'Video not found';
+        }
+
+        // Add the comment
+        final commentsRef = videoRef.collection('comments');
+        transaction.set(commentsRef.doc(), commentData);
+
+        // Update comment count
+        final currentComments = (videoDoc.data()?['comments'] as num?)?.toInt() ?? 0;
+        transaction.update(videoRef, {'comments': currentComments + 1});
+      });
+    } catch (e) {
+      throw 'Failed to add comment: $e';
+    }
+  }
+
+  /// Deletes a comment from a video
+  Future<void> deleteComment({
+    required String videoId,
+    required String commentId,
+    required String userId,
+  }) async {
+    try {
+      await _firestore.runTransaction((transaction) async {
+        final videoRef = _videosCollection.doc(videoId);
+        final commentRef = videoRef.collection('comments').doc(commentId);
+        
+        // Verify comment exists and belongs to user
+        final commentDoc = await transaction.get(commentRef);
+        if (!commentDoc.exists) {
+          throw 'Comment not found';
+        }
+        if (commentDoc.data()?['userId'] != userId) {
+          throw 'Not authorized to delete this comment';
+        }
+
+        // Get current comment count
+        final videoDoc = await transaction.get(videoRef);
+        if (!videoDoc.exists) {
+          throw 'Video not found';
+        }
+        final currentComments = (videoDoc.data()?['comments'] as num?)?.toInt() ?? 0;
+
+        // Delete comment and update count
+        transaction.delete(commentRef);
+        transaction.update(videoRef, {'comments': currentComments - 1});
+      });
+    } catch (e) {
+      throw 'Failed to delete comment: $e';
+    }
   }
 }

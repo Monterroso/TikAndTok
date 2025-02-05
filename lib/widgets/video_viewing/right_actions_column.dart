@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/video.dart';
 import 'like_animation.dart';
+import 'comments/comments_sheet.dart';
 
 /// RightActionsColumn groups interactive buttons such as like, comments,
 /// save, share, and music info vertically along the right edge.
@@ -36,9 +37,12 @@ class RightActionsColumn extends StatelessWidget {
         _ActionButton(
           icon: Icons.comment,
           count: video.comments,
-          onTap: () {
-            // TODO: Implement comments functionality.
-          },
+          onTap: () => CommentsSheet.show(
+            context: context,
+            videoId: video.id,
+            currentUserId: currentUserId,
+            commentCount: video.comments,
+          ),
         ),
         const SizedBox(height: 20.0),
         // Save button.
