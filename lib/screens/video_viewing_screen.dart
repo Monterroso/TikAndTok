@@ -16,8 +16,25 @@ import '../widgets/video_viewing/custom_bottom_navigation_bar.dart';
 /// - The CreatorInfoGroup shows the creator's profile picture, follow button, username,
 ///   and video title at the bottom-left.
 /// - The CustomBottomNavigationBar is fixed at the bottom with upload and profile actions.
-class FrontPage extends StatelessWidget {
+class FrontPage extends StatefulWidget {
   const FrontPage({Key? key}) : super(key: key);
+
+  @override
+  State<FrontPage> createState() => _FrontPageState();
+}
+
+class _FrontPageState extends State<FrontPage> {
+  Video? _currentVideo;
+
+  void _handleVideoChanged(Video video) {
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() {
+        _currentVideo = video;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +112,8 @@ class FrontPage extends StatelessWidget {
               }
 
               return VideoFeed(
-                videoUrls: validVideos.map((video) => video.url).toList(),
+                videos: validVideos,
+                onVideoChanged: _handleVideoChanged,
               );
             },
           ),
@@ -116,10 +134,11 @@ class FrontPage extends StatelessWidget {
           ),
           
           // CreatorInfoGroup displays creator details
-          const Positioned(
+          Positioned(
             left: 16.0,
+            right: 72.0, // Give space for the right action buttons
             bottom: 80.0,
-            child: CreatorInfoGroup(),
+            child: CreatorInfoGroup(video: _currentVideo),
           ),
           
           // CustomBottomNavigationBar fixed at the bottom

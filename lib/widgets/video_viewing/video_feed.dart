@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import '../../models/video.dart';
 import 'video_background.dart';
 
 /// VideoFeed implements a vertically scrollable feed of videos.
 /// It uses PageView for smooth transitions and manages video loading.
 class VideoFeed extends StatefulWidget {
-  final List<String> videoUrls;
+  final List<Video> videos;
+  final Function(Video)? onVideoChanged;
 
   const VideoFeed({
     Key? key,
-    required this.videoUrls,
+    required this.videos,
+    this.onVideoChanged,
   }) : super(key: key);
 
   @override
@@ -23,6 +26,12 @@ class _VideoFeedState extends State<VideoFeed> {
   void initState() {
     super.initState();
     _pageController = PageController();
+    // Schedule the initial video notification for after the build
+    if (widget.videos.isNotEmpty && widget.onVideoChanged != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.onVideoChanged!(widget.videos[0]);
+      });
+    }
   }
 
   @override
@@ -35,6 +44,11 @@ class _VideoFeedState extends State<VideoFeed> {
     setState(() {
       _currentPageIndex = index;
     });
+    // Notify video change
+    if (widget.onVideoChanged != null) {
+      widget.onVideoChanged!(widget.videos[index]);
+    }
+    // TODO: Implement prefetching of next video's creator data
   }
 
   @override
@@ -43,10 +57,12 @@ class _VideoFeedState extends State<VideoFeed> {
       scrollDirection: Axis.vertical,
       controller: _pageController,
       onPageChanged: _onPageChanged,
-      itemCount: widget.videoUrls.length,
+      itemCount: widget.videos.length,
       itemBuilder: (context, index) {
+        final video = widget.videos[index];
         return VideoBackground(
-          videoUrl: widget.videoUrls[index],
+          videoUrl: video.url,
+          // Pass additional video metadata if needed by VideoBackground
         );
       },
     );

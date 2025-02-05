@@ -161,6 +161,12 @@ class FirestoreService {
     Map<String, dynamic>? metadata,
   }) async {
     try {
+      // Verify the user exists before creating the video
+      final userDoc = await _usersCollection.doc(userId).get();
+      if (!userDoc.exists) {
+        throw 'Cannot create video: User profile does not exist';
+      }
+
       final videoData = {
         'userId': userId,
         'url': url,
