@@ -8,12 +8,16 @@ class RightActionsColumn extends StatelessWidget {
   final Video video;
   final String currentUserId;
   final Function(bool) onLikeChanged;
+  final bool isLiked;
+  final int likeCount;
 
   const RightActionsColumn({
     Key? key,
     required this.video,
     required this.currentUserId,
     required this.onLikeChanged,
+    required this.isLiked,
+    required this.likeCount,
   }) : super(key: key);
 
   @override
@@ -23,9 +27,9 @@ class RightActionsColumn extends StatelessWidget {
       children: [
         // Like button with animation
         LikeAnimation(
-          isLiked: video.isLikedByUser(currentUserId),
-          likeCount: video.likeCount,
-          onTap: () => onLikeChanged(!video.isLikedByUser(currentUserId)),
+          isLiked: isLiked,
+          likeCount: likeCount,
+          onTap: () => onLikeChanged(!isLiked),
         ),
         const SizedBox(height: 20.0),
         // Comments button with a numerical count displayed below.

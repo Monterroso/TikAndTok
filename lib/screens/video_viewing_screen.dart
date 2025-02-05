@@ -28,6 +28,8 @@ class _FrontPageState extends State<FrontPage> {
   Video? _currentVideo;
   final _firestoreService = FirestoreService();
   final _currentUserId = FirebaseAuth.instance.currentUser?.uid;
+  // Keep track of optimistic updates
+  final Set<String> _optimisticLikes = {};
 
   void _handleVideoChanged(Video video) {
     if (!mounted) return;
@@ -35,6 +37,8 @@ class _FrontPageState extends State<FrontPage> {
       if (!mounted) return;
       setState(() {
         _currentVideo = video;
+        // Clear optimistic likes when video changes
+        _optimisticLikes.clear();
       });
     });
   }
@@ -42,13 +46,30 @@ class _FrontPageState extends State<FrontPage> {
   Future<void> _handleLikeChanged(bool liked) async {
     if (_currentVideo == null || _currentUserId == null) return;
 
+    // Optimistically update the UI
+    setState(() {
+      if (liked) {
+        _optimisticLikes.add(_currentVideo!.id);
+      } else {
+        _optimisticLikes.remove(_currentVideo!.id);
+      }
+    });
+
     try {
       await _firestoreService.toggleLike(
         videoId: _currentVideo!.id,
         userId: _currentUserId,
       );
     } catch (e) {
+      // Revert optimistic update on error
       if (!mounted) return;
+      setState(() {
+        if (liked) {
+          _optimisticLikes.remove(_currentVideo!.id);
+        } else {
+          _optimisticLikes.add(_currentVideo!.id);
+        }
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to ${liked ? 'like' : 'unlike'} video: $e'),
@@ -56,6 +77,41 @@ class _FrontPageState extends State<FrontPage> {
         ),
       );
     }
+  }
+
+  // Helper method to get current like status considering optimistic updates
+  bool _isVideoLiked(Video video) {
+    if (_currentUserId == null) return false;
+    
+    // Get the actual server state
+    final serverLikeStatus = video.isLikedByUser(_currentUserId!);
+    
+    // Check if we have a pending optimistic update
+    final hasOptimisticUpdate = _optimisticLikes.contains(video.id);
+    
+    // If we have an optimistic update, toggle the server state
+    // Otherwise, use the server state as is
+    return hasOptimisticUpdate ? !serverLikeStatus : serverLikeStatus;
+  }
+
+  // Helper method to get like count considering optimistic updates
+  int _getLikeCount(Video video) {
+    if (_currentUserId == null) return video.likeCount;
+    
+    // Get the server states
+    final serverLikeStatus = video.isLikedByUser(_currentUserId!);
+    final serverLikeCount = video.likeCount;
+    
+    // Check if we have a pending optimistic update
+    final hasOptimisticUpdate = _optimisticLikes.contains(video.id);
+    
+    if (!hasOptimisticUpdate) {
+      // No optimistic update, use server count
+      return serverLikeCount;
+    }
+    
+    // If we have an optimistic update, adjust the count based on the change
+    return serverLikeStatus ? serverLikeCount - 1 : serverLikeCount + 1;
   }
 
   @override
@@ -168,6 +224,8 @@ class _FrontPageState extends State<FrontPage> {
               video: _currentVideo!,
               currentUserId: _currentUserId!,
               onLikeChanged: _handleLikeChanged,
+              isLiked: _isVideoLiked(_currentVideo!),
+              likeCount: _getLikeCount(_currentVideo!),
             ),
           ),
           
