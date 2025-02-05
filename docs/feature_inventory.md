@@ -12,6 +12,12 @@ This document tracks all implemented and planned features for the application. I
   - [ ] Implement login and logout flows  
     *Location:* `lib/screens/login_screen.dart`
   - [ ] Ensure session persistence and error handling  
+  - [ ] Automatic user profile creation on signup (In Progress)
+    *Location:* `functions/src/index.ts`
+    - Creates Firestore document with default fields
+    - Handles data consistency between Auth and Firestore
+    - Generates default username from display name
+    - Pending deployment to Firebase
   - [ ] Create a basic user profile screen for viewing/updating profile info  
     *Location:* `lib/screens/profile_screen.dart`
 

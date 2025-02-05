@@ -2,25 +2,53 @@ Below is a detailed, step‐by‐step checklist with substeps and explanations f
 ---
 Detailed Checklist
 
-Step 0: Firebase Service Setup (Prerequisites)
+Step 0: Firebase Service Setup (Prerequisites) ✓
 Action: Set up required Firebase services and implement service classes
+
 Substeps:
-[ ] Set up Firestore Database
-  - Create a users collection
-  - Define user document structure (username, bio, profile_picture_url, created_at, updated_at)
-[ ] Set up Firebase Storage
-  - Create a profile_pictures folder in storage
-  - Set up security rules for user access
-[ ] Implement FirebaseStorageService
-  - Create firebase_storage_service.dart if it doesn't exist
-  - Add uploadProfileImage method (with compression and validation)
-  - Add deleteProfileImage method (for cleanup of old images)
-  - Add getProfileImageUrl method
-[ ] Update FirestoreService
-  - Create firestore_service.dart if it doesn't exist
-  - Add streamUserProfile method
-  - Add updateUserProfile method
-  - Add createUserProfile method (called after auth)
+[✓] Set up Firestore Database
+  - [✓] Create a users collection
+  - [✓] Define user document structure (username, bio, profile_picture_url, created_at, updated_at)
+[✓] Set up Firebase Storage
+  - [✓] Create a profile_pictures folder in storage
+  - [✓] Set up file handling methods
+  - [✓] Added proper error handling and size limits
+[✓] Implement FirebaseStorageService
+  - [✓] Create firebase_storage_service.dart
+  - [✓] Add uploadProfileImage method (with compression and validation)
+  - [✓] Add deleteProfileImage method (for cleanup of old images)
+  - [✓] Add getProfileImageUrl method
+[✓] Update FirestoreService
+  - [✓] Create firestore_service.dart
+  - [✓] Add streamUserProfile method
+  - [✓] Add updateUserProfile method
+  - [✓] Add createUserProfile method
+[ ] Install CocoaPods (iOS requirement)
+  - [ ] Verify CocoaPods installation
+  - [ ] Run pod install in iOS directory
+  - [ ] Update pods if necessary
+
+Step 0.5: Implement Cloud Function for Automatic User Profile Creation
+Action: Create a Cloud Function to automatically create a new user profile document in the users collection when a new Firebase Authentication user is created.
+Substeps:
+[✓] Ensure a `/functions` directory exists at the project root.
+[✓] From the `/functions` folder, install Firebase Functions and Admin dependencies:
+   ```bash
+   cd functions
+   npm install firebase-functions firebase-admin
+   ```
+[✓] Create or update `functions/src/index.ts` with the Cloud Function
+[ ] Update documentation:  
+   - [ ] Add a note in [docs/architecture.md](docs/architecture.md)
+   - [ ] Add a note in [docs/feature_inventory.md](docs/feature_inventory.md)
+[ ] Test the Cloud Function locally using the Firebase Emulator:
+   ```bash
+   firebase emulators:start --only functions
+   ```
+[ ] Deploy the Cloud Function:
+   ```bash
+   firebase deploy --only functions
+   ```
 
 Step 1: Create the Profile Screen
 Create a New File for ProfileScreen
@@ -332,6 +360,7 @@ Final Summary
 2. Create a dedicated ProfileScreen with image picker functionality and form validation
 3. Implement FirebaseStorageService for handling profile images
 4. Enhance FirestoreService with validation and image handling capabilities
-5. Wire up navigation and test thoroughly
+5. Implement a Cloud Function to automatically create a user profile on new user creation
+6. Wire up navigation and test thoroughly
 
 This checklist provides a complete roadmap for implementing a robust profile update system with image handling. Each step is designed to be independently testable while building towards the final functionality. Please review and let me know if any clarification is needed before we begin implementation.

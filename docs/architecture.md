@@ -64,6 +64,13 @@ TikAndTok/
 - **Service Layer:**  
   All Firebase integrations (Authentication, Firestore, Storage, Messaging) are encapsulated in service classes inside `lib/services/`. This ensures that interactions with external systems are abstracted and maintainable.
 
+- **Cloud Functions:**
+  Firebase Cloud Functions handle server-side operations and automated tasks:
+  - Located in `/functions` directory using TypeScript
+  - Implements automatic user profile creation on signup
+  - Handles data consistency between Auth and Firestore
+  - Uses v1 functions for auth triggers (v2 not yet supported for auth)
+
 - **Reusable Widgets:**  
   Shared UI components are organized in `lib/widgets/` to avoid code duplication and maintain consistency:
   - Authentication widgets at the root level (to be organized into auth/ directory)
