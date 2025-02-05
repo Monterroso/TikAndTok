@@ -22,6 +22,7 @@ TikAndTok/
 │ │ ├── login_screen.dart // Handles user authentication (login/sign-up)
 │ │ ├── home_screen.dart // (Deprecated) Previous home screen, replaced by video_viewing_screen
 │ │ ├── video_viewing_screen.dart // Main video viewing screen with FrontPage widget
+│ │ ├── profile_screen.dart // User profile management screen with image upload
 │ │ ├── saved_videos_screen.dart // Lists videos saved/bookmarked by the user
 │ │ ├── filter_screen.dart // Allows filtering of videos by various criteria
 │ │ └── collections_screen.dart // UI for managing user-created collections
@@ -40,7 +41,7 @@ TikAndTok/
 │ │ │ ├── top_search_button.dart // Search button in the top-right corner
 │ │ │ ├── right_actions_column.dart // Vertical column of interaction buttons
 │ │ │ ├── creator_info_group.dart // Creator's information and follow button
-│ │ │ └── custom_bottom_navigation_bar.dart // Bottom navigation with upload and profile
+│ │ │ └── custom_bottom_navigation_bar.dart // Bottom navigation with upload and profile navigation
 │ │ ├── email_verification_banner.dart // Banner prompting email verification
 │ │ ├── profile_card.dart // Displays user's profile information
 │ │ ├── video_card.dart // Widget to display video information on feed (for future use)
@@ -83,9 +84,13 @@ TikAndTok/
   - Common components at the root of `widgets/`
 
 - **Navigation & Routing:**  
-  We use Flutter's Navigator for screen transitions. The `AuthWrapper` in `main.dart` handles the main authentication flow:
-  - Unauthenticated users see the `LoginScreen`
-  - Authenticated users see the `FrontPage` (video viewing screen)
+  We use Flutter's Navigator for screen transitions:
+  - The `AuthWrapper` in `main.dart` handles the main authentication flow:
+    - Unauthenticated users see the `LoginScreen`
+    - Authenticated users see the `FrontPage` (video viewing screen)
+  - Profile navigation is handled through the bottom navigation bar:
+    - Profile icon navigates to `ProfileScreen`
+    - Includes user profile management and logout functionality
 
 - **Coding Practices & Conventions:**  
   Adhering to Dart's style guidelines and our defined nomenclature in [docs/development_guidelines.md](docs/development_guidelines.md), we use clear naming conventions (PascalCase for classes, camelCase for variables and functions, underscores for file names) and enforce modularity with a clean separation between UI, business logic, and data models.

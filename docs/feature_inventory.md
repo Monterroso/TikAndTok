@@ -11,7 +11,8 @@ This document tracks all implemented and planned features for the application. I
     *Location:* `lib/services/auth_service.dart`  
   - [✓] Implement login and logout flows  
     *Location:* `lib/screens/login_screen.dart`
-  - [ ] Ensure session persistence and error handling  
+  - [✓] Ensure session persistence and error handling  
+    *Location:* `lib/screens/login_screen.dart`
   - [✓] Automatic user profile creation on signup
     *Location:* `functions/src/index.ts`
     - Implemented and deployed Cloud Function
@@ -23,8 +24,17 @@ This document tracks all implemented and planned features for the application. I
       - createdAt & updatedAt timestamps
     - Handles data consistency between Auth and Firestore
     - Includes error handling and logging
-  - [ ] Create a basic user profile screen for viewing/updating profile info  
+  - [✓] Create a basic user profile screen for viewing/updating profile info  
     *Location:* `lib/screens/profile_screen.dart`
+    - Implemented profile screen with:
+      - Profile picture upload (camera/gallery)
+      - Username field with validation
+      - Bio field with character limit
+      - Update profile button with loading state
+      - Logout functionality in AppBar
+      - Error handling and user feedback
+    - Added navigation from bottom bar profile icon
+    *Location:* `lib/widgets/video_viewing/custom_bottom_navigation_bar.dart`
 
 - [ ] **Core Video Feed & Playback**  
   *Description:* Provide a seamless, scrollable video feed as the primary interface for content discovery.  
