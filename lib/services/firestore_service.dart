@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/video.dart';
 
 /// Service class to handle all Firestore document operations related to user profiles.
 /// This service is responsible for:
@@ -21,6 +22,9 @@ class FirestoreService {
   // Collection references
   CollectionReference<Map<String, dynamic>> get _usersCollection => 
     _firestore.collection('users');
+  
+  CollectionReference<Map<String, dynamic>> get _videosCollection => 
+    _firestore.collection('videos');
 
   /// Streams user profile document changes
   Stream<DocumentSnapshot<Map<String, dynamic>>> streamUserProfile(String uid) {
@@ -114,5 +118,81 @@ class FirestoreService {
       return 'Bio must not exceed 150 characters';
     }
     return null;
+  }
+
+  /// Streams a list of videos for the feed
+  /// Orders by creation date and limits the initial fetch
+  Stream<List<Video>> streamVideos({int limit = 10}) {
+    return _videosCollection
+      .orderBy('createdAt', descending: true)
+      .limit(limit)
+      .snapshots()
+      .map((snapshot) => 
+        snapshot.docs.map((doc) => Video.fromFirestore(doc)).toList()
+      );
+  }
+
+  /// Fetches the next batch of videos after the last video in the current feed
+  Future<List<Video>> getNextVideos({
+    required DocumentSnapshot lastVideo,
+    int limit = 10,
+  }) async {
+    try {
+      final querySnapshot = await _videosCollection
+        .orderBy('createdAt', descending: true)
+        .startAfterDocument(lastVideo)
+        .limit(limit)
+        .get();
+
+      return querySnapshot.docs
+        .map((doc) => Video.fromFirestore(doc))
+        .toList();
+    } catch (e) {
+      throw 'Failed to fetch next videos: $e';
+    }
+  }
+
+  /// Creates a new video document in Firestore
+  Future<String> createVideo({
+    required String userId,
+    required String url,
+    required String title,
+    required String description,
+    Map<String, dynamic>? metadata,
+  }) async {
+    try {
+      final videoData = {
+        'userId': userId,
+        'url': url,
+        'title': title,
+        'description': description,
+        'likes': 0,
+        'comments': 0,
+        'createdAt': FieldValue.serverTimestamp(),
+        if (metadata != null) 'metadata': metadata,
+      };
+
+      final docRef = await _videosCollection.add(videoData);
+      return docRef.id;
+    } catch (e) {
+      throw 'Failed to create video document: $e';
+    }
+  }
+
+  /// Updates video statistics (likes, comments)
+  Future<void> updateVideoStats({
+    required String videoId,
+    int? likes,
+    int? comments,
+  }) async {
+    try {
+      final updates = <String, dynamic>{};
+      if (likes != null) updates['likes'] = likes;
+      if (comments != null) updates['comments'] = comments;
+
+      await _videosCollection.doc(videoId).update(updates);
+    } catch (e) {
+      throw 'Failed to update video stats: $e';
+    }
   }
 }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../services/firestore_service.dart';
+import '../models/video.dart';
 import '../widgets/video_viewing/video_feed.dart';
 import '../widgets/video_viewing/top_search_button.dart';
 import '../widgets/video_viewing/right_actions_column.dart';
@@ -19,49 +21,68 @@ class FrontPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Replace with actual video URLs from Firebase
-    final List<String> demoVideos = [
-      'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4',
-      'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
-    ];
-
     return Scaffold(
-      // Using a Stack to layer the video and overlay components.
-      body: Stack(
-        children: [
-          // VideoFeed occupies the full screen with swipeable videos.
-          VideoFeed(videoUrls: demoVideos),
-          
-          // TopSearchButton positioned at the top-right with padding.
-          const Positioned(
-            top: 16.0,
-            right: 16.0,
-            child: TopSearchButton(),
-          ),
-          
-          // RightActionsColumn holds the interactive buttons, vertically aligned.
-          const Positioned(
-            top: 100.0,
-            right: 16.0,
-            bottom: 100.0,
-            child: RightActionsColumn(),
-          ),
-          
-          // CreatorInfoGroup displays creator details and video info at bottom-left.
-          const Positioned(
-            left: 16.0,
-            bottom: 80.0, // Leaves space for the bottom navigation.
-            child: CreatorInfoGroup(),
-          ),
-          
-          // CustomBottomNavigationBar fixed at the bottom of the screen.
-          const Positioned(
-            left: 0.0,
-            right: 0.0,
-            bottom: 0.0,
-            child: CustomBottomNavigationBar(),
-          ),
-        ],
+      body: StreamBuilder<List<Video>>(
+        stream: FirestoreService().streamVideos(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(
+              child: Text('Error: ${snapshot.error}'),
+            );
+          }
+
+          if (!snapshot.hasData) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          final videos = snapshot.data!;
+          if (videos.isEmpty) {
+            return const Center(
+              child: Text('No videos available'),
+            );
+          }
+
+          return Stack(
+            children: [
+              // VideoFeed occupies the full screen with swipeable videos.
+              VideoFeed(
+                videoUrls: videos.map((video) => video.url).toList(),
+              ),
+              
+              // TopSearchButton positioned at the top-right with padding.
+              const Positioned(
+                top: 16.0,
+                right: 16.0,
+                child: TopSearchButton(),
+              ),
+              
+              // RightActionsColumn holds the interactive buttons, vertically aligned.
+              const Positioned(
+                top: 100.0,
+                right: 16.0,
+                bottom: 100.0,
+                child: RightActionsColumn(),
+              ),
+              
+              // CreatorInfoGroup displays creator details and video info at bottom-left.
+              const Positioned(
+                left: 16.0,
+                bottom: 80.0, // Leaves space for the bottom navigation.
+                child: CreatorInfoGroup(),
+              ),
+              
+              // CustomBottomNavigationBar fixed at the bottom of the screen.
+              const Positioned(
+                left: 0.0,
+                right: 0.0,
+                bottom: 0.0,
+                child: CustomBottomNavigationBar(),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
