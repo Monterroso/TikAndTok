@@ -12,7 +12,7 @@ get
 ---
 Step 2. Create or Update the Video Viewing Screen
 File Creation:
-Check if lib/screens/video_viewing_screen.dart existßs. If not, create it.
+Check if lib/screens/video_viewing_screen.dart exists. If not, create it.
 Setup a Base Scaffold:
 Import the required UI components (many of which we already defined under lib/widgets/video_viewing/).
 Example Code Skeleton:

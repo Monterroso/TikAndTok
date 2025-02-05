@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/video_viewing/video_background.dart';
+import '../widgets/video_viewing/video_feed.dart';
 import '../widgets/video_viewing/top_search_button.dart';
 import '../widgets/video_viewing/right_actions_column.dart';
 import '../widgets/video_viewing/creator_info_group.dart';
@@ -7,7 +7,7 @@ import '../widgets/video_viewing/custom_bottom_navigation_bar.dart';
 
 /// FrontPage is the main entry point for the D&D TikTok clone's video display.
 /// It sets up a layered UI using a full-screen stack:
-/// - The VideoBackground plays the video in full-screen behind all UI elements.
+/// - The VideoFeed provides a swipeable list of full-screen videos.
 /// - The TopSearchButton is positioned at the top-right for searches.
 /// - The RightActionsColumn displays buttons like, dislike, comments, save, share, 
 ///   and music info in a vertical column on the right edge.
@@ -19,18 +19,26 @@ class FrontPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // TODO: Replace with actual video URLs from Firebase
+    final List<String> demoVideos = [
+      'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4',
+      'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
+    ];
+
     return Scaffold(
       // Using a Stack to layer the video and overlay components.
       body: Stack(
         children: [
-          // VideoBackground occupies the full screen.
-          const VideoBackground(),
+          // VideoFeed occupies the full screen with swipeable videos.
+          VideoFeed(videoUrls: demoVideos),
+          
           // TopSearchButton positioned at the top-right with padding.
           const Positioned(
             top: 16.0,
             right: 16.0,
             child: TopSearchButton(),
           ),
+          
           // RightActionsColumn holds the interactive buttons, vertically aligned.
           const Positioned(
             top: 100.0,
@@ -38,12 +46,14 @@ class FrontPage extends StatelessWidget {
             bottom: 100.0,
             child: RightActionsColumn(),
           ),
+          
           // CreatorInfoGroup displays creator details and video info at bottom-left.
           const Positioned(
             left: 16.0,
             bottom: 80.0, // Leaves space for the bottom navigation.
             child: CreatorInfoGroup(),
           ),
+          
           // CustomBottomNavigationBar fixed at the bottom of the screen.
           const Positioned(
             left: 0.0,
