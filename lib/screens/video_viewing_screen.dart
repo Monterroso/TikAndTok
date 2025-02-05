@@ -204,6 +204,9 @@ class _FrontPageState extends State<FrontPage> {
               return VideoFeed(
                 videos: validVideos,
                 onVideoChanged: _handleVideoChanged,
+                onLikeChanged: _currentVideo != null ? _handleLikeChanged : null,
+                isCurrentVideoLiked: _currentVideo != null ? _isVideoLiked(_currentVideo!) : false,
+                currentVideoLikeCount: _currentVideo != null ? _getLikeCount(_currentVideo!) : 0,
               );
             },
           ),
