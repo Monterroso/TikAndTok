@@ -22,67 +22,85 @@ class FrontPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: StreamBuilder<List<Video>>(
-        stream: FirestoreService().streamVideos(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(
-              child: Text('Error: ${snapshot.error}'),
-            );
-          }
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          // Debug information or VideoFeed
+          StreamBuilder<List<Video>>(
+            stream: FirestoreService().streamVideos(),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      'Debug: Firebase Error\n${snapshot.error}',
+                      style: const TextStyle(color: Colors.white54),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                );
+              }
 
-          if (!snapshot.hasData) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
+              if (!snapshot.hasData) {
+                return const Center(
+                  child: Text(
+                    'Debug: Waiting for Firebase data...',
+                    style: TextStyle(color: Colors.white54),
+                  ),
+                );
+              }
 
-          final videos = snapshot.data!;
-          if (videos.isEmpty) {
-            return const Center(
-              child: Text('No videos available'),
-            );
-          }
+              final videos = snapshot.data ?? [];
+              if (videos.isEmpty) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text(
+                      'Debug: No videos in Firebase\nCollection: videos\nExpected fields: url, userId, title, description',
+                      style: TextStyle(color: Colors.white54),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                );
+              }
 
-          return Stack(
-            children: [
-              // VideoFeed occupies the full screen with swipeable videos.
-              VideoFeed(
+              return VideoFeed(
                 videoUrls: videos.map((video) => video.url).toList(),
-              ),
-              
-              // TopSearchButton positioned at the top-right with padding.
-              const Positioned(
-                top: 16.0,
-                right: 16.0,
-                child: TopSearchButton(),
-              ),
-              
-              // RightActionsColumn holds the interactive buttons, vertically aligned.
-              const Positioned(
-                top: 100.0,
-                right: 16.0,
-                bottom: 100.0,
-                child: RightActionsColumn(),
-              ),
-              
-              // CreatorInfoGroup displays creator details and video info at bottom-left.
-              const Positioned(
-                left: 16.0,
-                bottom: 80.0, // Leaves space for the bottom navigation.
-                child: CreatorInfoGroup(),
-              ),
-              
-              // CustomBottomNavigationBar fixed at the bottom of the screen.
-              const Positioned(
-                left: 0.0,
-                right: 0.0,
-                bottom: 0.0,
-                child: CustomBottomNavigationBar(),
-              ),
-            ],
-          );
-        },
+              );
+            },
+          ),
+          
+          // TopSearchButton positioned at the top-right with padding
+          const Positioned(
+            top: 16.0,
+            right: 16.0,
+            child: TopSearchButton(),
+          ),
+          
+          // RightActionsColumn holds the interactive buttons
+          const Positioned(
+            top: 100.0,
+            right: 16.0,
+            bottom: 100.0,
+            child: RightActionsColumn(),
+          ),
+          
+          // CreatorInfoGroup displays creator details
+          const Positioned(
+            left: 16.0,
+            bottom: 80.0,
+            child: CreatorInfoGroup(),
+          ),
+          
+          // CustomBottomNavigationBar fixed at the bottom
+          const Positioned(
+            left: 0.0,
+            right: 0.0,
+            bottom: 0.0,
+            child: CustomBottomNavigationBar(),
+          ),
+        ],
       ),
     );
   }

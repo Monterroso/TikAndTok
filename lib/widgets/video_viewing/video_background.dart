@@ -16,41 +16,49 @@ class VideoBackground extends StatefulWidget {
 }
 
 class _VideoBackgroundState extends State<VideoBackground> {
-  late VideoPlayerController _controller;
+  VideoPlayerController? _controller;
   bool _isInitialized = false;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _initializeVideo();
+    if (widget.videoUrl != null && widget.videoUrl!.isNotEmpty) {
+      _initializeVideo();
+    } else {
+      setState(() {
+        _error = 'No video available';
+      });
+    }
   }
 
   Future<void> _initializeVideo() async {
-    // For testing, use a sample video if no URL is provided
-    final videoUrl = widget.videoUrl ?? 
-      'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4';
-    
-    _controller = VideoPlayerController.network(videoUrl);
-
     try {
-      await _controller.initialize();
-      await _controller.setLooping(true);
-      await _controller.play();
+      _controller = VideoPlayerController.network(widget.videoUrl!);
+      await _controller!.initialize();
+      await _controller!.setLooping(true);
+      await _controller!.play();
       
       if (mounted) {
         setState(() {
           _isInitialized = true;
+          _error = null;
         });
       }
     } catch (e) {
       debugPrint('Error initializing video: $e');
-      // We'll show an error icon in the build method
+      if (mounted) {
+        setState(() {
+          _error = 'Unable to load video';
+          _isInitialized = false;
+        });
+      }
     }
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 
@@ -63,7 +71,32 @@ class _VideoBackgroundState extends State<VideoBackground> {
   }
 
   Widget _buildVideoWidget() {
-    if (!_isInitialized) {
+    // Show error state with custom message
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.video_library_outlined,
+              color: Colors.white54,
+              size: 64,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              _error!,
+              style: const TextStyle(
+                color: Colors.white54,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Show loading state
+    if (!_isInitialized || _controller == null) {
       return const Center(
         child: CircularProgressIndicator(
           color: Colors.white,
@@ -71,20 +104,11 @@ class _VideoBackgroundState extends State<VideoBackground> {
       );
     }
 
-    if (_controller.value.hasError) {
-      return const Center(
-        child: Icon(
-          Icons.error_outline,
-          color: Colors.white,
-          size: 48,
-        ),
-      );
-    }
-
+    // Show video
     return Center(
       child: AspectRatio(
-        aspectRatio: _controller.value.aspectRatio,
-        child: VideoPlayer(_controller),
+        aspectRatio: _controller!.value.aspectRatio,
+        child: VideoPlayer(_controller!),
       ),
     );
   }
