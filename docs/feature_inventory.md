@@ -36,7 +36,7 @@ This document tracks all implemented and planned features for the application. I
     - Added navigation from bottom bar profile icon
     *Location:* `lib/widgets/video_viewing/custom_bottom_navigation_bar.dart`
 
-- [ ] **Core Video Feed & Playback**  
+- [✓] **Core Video Feed & Playback**  
   *Description:* Provide a seamless, scrollable video feed as the primary interface for content discovery.  
   **Sub-Tasks:**
   - [✓] Design and implement video feed UI  
