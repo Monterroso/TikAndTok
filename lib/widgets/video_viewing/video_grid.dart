@@ -114,6 +114,16 @@ class VideoCard extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
+        // Make the card tappable (now below other elements)
+        Positioned.fill(
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(8),
+              onTap: onTap,
+            ),
+          ),
+        ),
         // Placeholder container with gradient
         Container(
           decoration: BoxDecoration(
@@ -167,21 +177,16 @@ class VideoCard extends StatelessWidget {
             ),
           ),
         ),
-        // Custom action (like remove button)
+        // Custom action (like remove button) - now on top
         if (actionBuilder != null)
           Positioned(
             top: 8,
             right: 8,
-            child: actionBuilder!(video),
+            child: Material(
+              color: Colors.transparent,
+              child: actionBuilder!(video),
+            ),
           ),
-        // Make the entire card tappable
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(8),
-            onTap: onTap,
-          ),
-        ),
       ],
     );
   }
