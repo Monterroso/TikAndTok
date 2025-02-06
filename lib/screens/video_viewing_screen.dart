@@ -137,7 +137,8 @@ class _FrontPageState extends State<FrontPage> {
                 },
                 isCurrentVideoLiked: _currentVideo != null ? 
                   manager.likedVideos.any((v) => v.id == _currentVideo!.id) : false,
-                currentVideoLikeCount: _currentVideo?.likeCount ?? 0,
+                currentVideoLikeCount: _currentVideo != null ? 
+                  manager.getLikeCount(_currentVideo!.id) : 0,
               );
             },
           ),
@@ -165,8 +166,8 @@ class _FrontPageState extends State<FrontPage> {
               },
               isLiked: manager.likedVideos.any((v) => v.id == _currentVideo!.id),
               isSaved: manager.savedVideos.any((v) => v.id == _currentVideo!.id),
-              likeCount: _currentVideo!.likeCount,
-              saveCount: _currentVideo!.saveCount,
+              likeCount: manager.getLikeCount(_currentVideo!.id),
+              saveCount: manager.getSaveCount(_currentVideo!.id),
             ),
           ),
           

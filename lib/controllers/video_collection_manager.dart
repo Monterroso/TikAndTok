@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/video.dart';
 import '../services/firestore_service.dart';
 import '../state/video_state.dart';
@@ -10,6 +11,7 @@ class VideoCollectionManager extends ChangeNotifier {
   final FirestoreService _firestoreService;
   final VideoStateCache _cache;
   final VideoStateStorage _storage;
+  final String? _currentUserId;
   
   // Error and loading states
   String? _error;
@@ -33,14 +35,20 @@ class VideoCollectionManager extends ChangeNotifier {
     FirestoreService? firestoreService,
     VideoStateCache? cache,
     VideoStateStorage? storage,
+    String? currentUserId,
   }) : _firestoreService = firestoreService ?? FirestoreService(),
        _cache = cache ?? VideoStateCache(),
-       _storage = storage ?? (throw ArgumentError('storage is required'));
+       _storage = storage ?? (throw ArgumentError('storage is required')),
+       _currentUserId = currentUserId;
 
   /// Factory constructor to create an instance with all dependencies
   static Future<VideoCollectionManager> create() async {
     final storage = await VideoStateStorage.create();
-    return VideoCollectionManager(storage: storage);
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    return VideoCollectionManager(
+      storage: storage,
+      currentUserId: currentUserId,
+    );
   }
 
   /// Initializes the manager by loading persisted states
@@ -238,5 +246,43 @@ class VideoCollectionManager extends ChangeNotifier {
   void clearError() {
     _error = null;
     notifyListeners();
+  }
+
+  /// Gets the like count for a video, including optimistic updates
+  int getLikeCount(String videoId) {
+    final state = _cache.get(videoId);
+    if (state == null) return 0;
+    
+    final video = state.videoData;
+    if (video == null || _currentUserId == null) return video?.likeCount ?? 0;
+
+    final isLikedInCache = likedVideos.any((v) => v.id == videoId);
+    final isLikedInVideo = video.isLikedByUser(_currentUserId!);
+
+    // If the states differ, adjust the count accordingly
+    if (isLikedInCache != isLikedInVideo) {
+      return video.likeCount + (isLikedInCache ? 1 : -1);
+    }
+
+    return video.likeCount;
+  }
+
+  /// Gets the save count for a video, including optimistic updates
+  int getSaveCount(String videoId) {
+    final state = _cache.get(videoId);
+    if (state == null) return 0;
+    
+    final video = state.videoData;
+    if (video == null || _currentUserId == null) return video?.saveCount ?? 0;
+
+    final isSavedInCache = savedVideos.any((v) => v.id == videoId);
+    final isSavedInVideo = video.isSavedByUser(_currentUserId!);
+
+    // If the states differ, adjust the count accordingly
+    if (isSavedInCache != isSavedInVideo) {
+      return video.saveCount + (isSavedInCache ? 1 : -1);
+    }
+
+    return video.saveCount;
   }
 } 
