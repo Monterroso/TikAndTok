@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'screens/login_screen.dart';
 import 'screens/video_viewing_screen.dart';
+import 'controllers/video_collection_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,9 +20,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamProvider<User?>.value(
-      value: FirebaseAuth.instance.userChanges(),
-      initialData: FirebaseAuth.instance.currentUser,
+    return MultiProvider(
+      providers: [
+        StreamProvider<User?>.value(
+          value: FirebaseAuth.instance.userChanges(),
+          initialData: FirebaseAuth.instance.currentUser,
+        ),
+        ChangeNotifierProvider(
+          create: (_) => VideoCollectionManager(),
+          lazy: true, // Only create when first accessed
+        ),
+      ],
       child: MaterialApp(
         title: 'D&D TikTok',
         theme: ThemeData(
