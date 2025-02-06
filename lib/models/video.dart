@@ -14,6 +14,7 @@ class Video {
   final DateTime createdAt;
   final Map<String, dynamic>? metadata;
   final Set<String> likedBy;
+  final Set<String> savedBy;
 
   const Video({
     required this.id,
@@ -26,6 +27,7 @@ class Video {
     required this.createdAt,
     this.metadata,
     this.likedBy = const {},
+    this.savedBy = const {},
   });
 
   /// Creates a Video instance from a Firestore document
@@ -64,6 +66,10 @@ class Video {
     final likedByList = (data['likedBy'] as List<dynamic>?) ?? [];
     final likedBy = Set<String>.from(likedByList.map((e) => e.toString()));
 
+    // Convert savedBy array from Firestore to Set
+    final savedByList = (data['savedBy'] as List<dynamic>?) ?? [];
+    final savedBy = Set<String>.from(savedByList.map((e) => e.toString()));
+
     return Video(
       id: doc.id,
       url: url,
@@ -75,6 +81,7 @@ class Video {
       createdAt: timestamp.toDate(),
       metadata: data['metadata'] as Map<String, dynamic>?,
       likedBy: likedBy,
+      savedBy: savedBy,
     );
   }
 
@@ -86,6 +93,7 @@ class Video {
       'title': title,
       'description': description,
       'likedBy': likedBy.toList(), // Convert Set to List for Firestore
+      'savedBy': savedBy.toList(), // Convert Set to List for Firestore
       'comments': comments,
       'createdAt': Timestamp.fromDate(createdAt),
       if (metadata != null) 'metadata': metadata,
@@ -108,4 +116,39 @@ class Video {
 
   /// Get the total number of likes (computed from likedBy set)
   int get likeCount => likedBy.length;
+
+  /// Check if a user has saved this video
+  bool isSavedByUser(String userId) => savedBy.contains(userId);
+
+  /// Get the total number of saves (computed from savedBy set)
+  int get saveCount => savedBy.length;
+
+  /// Create a copy of this Video with modified fields
+  Video copyWith({
+    String? id,
+    String? url,
+    String? userId,
+    String? title,
+    String? description,
+    int? likes,
+    int? comments,
+    DateTime? createdAt,
+    Map<String, dynamic>? metadata,
+    Set<String>? likedBy,
+    Set<String>? savedBy,
+  }) {
+    return Video(
+      id: id ?? this.id,
+      url: url ?? this.url,
+      userId: userId ?? this.userId,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      likes: likes ?? this.likes,
+      comments: comments ?? this.comments,
+      createdAt: createdAt ?? this.createdAt,
+      metadata: metadata ?? this.metadata,
+      likedBy: likedBy ?? this.likedBy,
+      savedBy: savedBy ?? this.savedBy,
+    );
+  }
 }

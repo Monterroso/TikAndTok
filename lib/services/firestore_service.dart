@@ -8,6 +8,7 @@ import 'dart:collection';
 /// - CRUD operations on user documents
 /// - Data validation
 /// - Document field updates
+/// - Video interactions (likes, saves, comments)
 /// 
 /// It does NOT handle:
 /// - File uploads (see FirebaseStorageService)
@@ -351,5 +352,96 @@ class FirestoreService {
     } catch (e) {
       throw 'Failed to delete comment: $e';
     }
+  }
+
+  /// Helper to get saved-by set from video document
+  Set<String> getSavedByFromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
+    if (!doc.exists) return {};
+    final data = doc.data() as Map<String, dynamic>;
+    final savedByList = (data['savedBy'] as List<dynamic>?) ?? [];
+    return Set<String>.from(savedByList.map((e) => e.toString()));
+  }
+
+  /// Toggles the save status of a video for a user
+  Future<void> toggleSave({
+    required String videoId,
+    required String userId,
+  }) async {
+    try {
+      // Run the update in a transaction to ensure consistency
+      await _firestore.runTransaction((transaction) async {
+        final videoRef = _videosCollection.doc(videoId);
+        final videoDoc = await transaction.get(videoRef);
+
+        if (!videoDoc.exists) {
+          throw 'Video not found';
+        }
+
+        final data = videoDoc.data() as Map<String, dynamic>;
+        final savedByList = (data['savedBy'] as List<dynamic>?) ?? [];
+        final savedBy = Set<String>.from(savedByList.map((e) => e.toString()));
+        
+        // Toggle save status
+        final wasSaved = savedBy.contains(userId);
+        if (wasSaved) {
+          savedBy.remove(userId);
+        } else {
+          savedBy.add(userId);
+        }
+
+        // Update the document
+        transaction.update(videoRef, {
+          'savedBy': savedBy.toList(),
+        });
+
+        // Update user's saved_videos subcollection
+        final userSavedRef = _usersCollection
+          .doc(userId)
+          .collection('saved_videos')
+          .doc(videoId);
+
+        if (wasSaved) {
+          transaction.delete(userSavedRef);
+        } else {
+          transaction.set(userSavedRef, {
+            'savedAt': FieldValue.serverTimestamp(),
+            'videoId': videoId,
+          });
+        }
+      });
+    } catch (e) {
+      throw 'Failed to toggle save: $e';
+    }
+  }
+
+  /// Streams saved videos for a user
+  Stream<List<Video>> streamSavedVideos({required String userId}) {
+    return _usersCollection
+      .doc(userId)
+      .collection('saved_videos')
+      .orderBy('savedAt', descending: true)
+      .snapshots()
+      .asyncMap((snapshot) async {
+        final videoIds = snapshot.docs.map((doc) => doc.id).toList();
+        if (videoIds.isEmpty) return [];
+
+        final videoSnapshots = await _videosCollection
+          .where(FieldPath.documentId, whereIn: videoIds)
+          .get();
+
+        return videoSnapshots.docs
+          .map((doc) => Video.fromFirestore(doc))
+          .toList();
+      });
+  }
+
+  /// Streams liked videos for a user
+  Stream<List<Video>> streamLikedVideos({required String userId}) {
+    return _videosCollection
+      .where('likedBy', arrayContains: userId)
+      .snapshots()
+      .map((snapshot) => 
+        snapshot.docs.map((doc) => Video.fromFirestore(doc)).toList()
+      );
   }
 }
