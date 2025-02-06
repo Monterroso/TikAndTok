@@ -130,13 +130,14 @@ class _FrontPageState extends State<FrontPage> {
               return VideoFeed(
                 videos: validVideos,
                 onVideoChanged: _handleVideoChanged,
-                onLikeChanged: (liked) async {
+                onLikeChanged: (liked) {
                   if (_currentVideo != null) {
-                    await manager.toggleLikeVideo(_currentVideo!.id, _currentUserId!);
+                    // Fire and forget - don't await
+                    manager.toggleLikeVideo(_currentVideo!.id, _currentUserId!);
                   }
                 },
                 isCurrentVideoLiked: _currentVideo != null ? 
-                  manager.likedVideos.any((v) => v.id == _currentVideo!.id) : false,
+                  (manager.getCachedVideoState(_currentVideo!.id)?.isLiked ?? false) : false,
                 currentVideoLikeCount: _currentVideo != null ? 
                   manager.getLikeCount(_currentVideo!.id) : 0,
               );
@@ -158,14 +159,16 @@ class _FrontPageState extends State<FrontPage> {
             child: RightActionsColumn(
               video: _currentVideo!,
               currentUserId: _currentUserId,
-              onLikeChanged: (liked) async {
-                await manager.toggleLikeVideo(_currentVideo!.id, _currentUserId!);
+              onLikeChanged: (liked) {
+                // Fire and forget - don't await
+                manager.toggleLikeVideo(_currentVideo!.id, _currentUserId!);
               },
-              onSaveChanged: (saved) async {
-                await manager.toggleSaveVideo(_currentVideo!.id, _currentUserId!);
+              onSaveChanged: (saved) {
+                // Fire and forget - don't await
+                manager.toggleSaveVideo(_currentVideo!.id, _currentUserId!);
               },
-              isLiked: manager.likedVideos.any((v) => v.id == _currentVideo!.id),
-              isSaved: manager.savedVideos.any((v) => v.id == _currentVideo!.id),
+              isLiked: manager.getCachedVideoState(_currentVideo!.id)?.isLiked ?? false,
+              isSaved: manager.getCachedVideoState(_currentVideo!.id)?.isSaved ?? false,
               likeCount: manager.getLikeCount(_currentVideo!.id),
               saveCount: manager.getSaveCount(_currentVideo!.id),
             ),

@@ -71,6 +71,11 @@ class VideoCollectionManager extends ChangeNotifier {
     }
   }
 
+  /// Gets a video state from cache only (synchronous)
+  VideoState? getCachedVideoState(String videoId) {
+    return _cache.get(videoId);
+  }
+
   /// Gets a video state from cache or storage
   Future<VideoState?> getVideoState(String videoId) async {
     // Try cache first
@@ -112,12 +117,49 @@ class VideoCollectionManager extends ChangeNotifier {
   /// Toggles the liked status of a video
   Future<void> toggleLikeVideo(String videoId, String userId) async {
     try {
-      await _updateVideoState(videoId, (currentState) {
-        final isLiked = !(currentState?.isLiked ?? false);
-        return (currentState ?? VideoState(
-          videoId: videoId,
-          lastUpdated: DateTime.now(),
-        )).copyWith(isLiked: isLiked);
+      // Get current state
+      final currentState = await getVideoState(videoId);
+      final video = currentState?.videoData;
+      if (video == null) return;
+
+      // Calculate new state
+      final isCurrentlyLiked = video.isLikedByUser(userId);
+      final newLikedBy = Set<String>.from(video.likedBy);
+      if (isCurrentlyLiked) {
+        newLikedBy.remove(userId);
+      } else {
+        newLikedBy.add(userId);
+      }
+
+      // Create optimistically updated video
+      final updatedVideo = Video(
+        id: video.id,
+        url: video.url,
+        userId: video.userId,
+        title: video.title,
+        description: video.description,
+        likes: video.likes + (isCurrentlyLiked ? -1 : 1),
+        comments: video.comments,
+        createdAt: video.createdAt,
+        metadata: video.metadata,
+        likedBy: newLikedBy,
+        savedBy: video.savedBy,
+      );
+
+      // Update state with optimistic changes immediately
+      final newState = VideoState(
+        videoId: videoId,
+        lastUpdated: DateTime.now(),
+        isLiked: !isCurrentlyLiked,
+        isSaved: currentState?.isSaved ?? false,  // Safe access to nullable state
+        videoData: updatedVideo,
+      );
+      _cache.put(newState);
+      notifyListeners();
+
+      // Update storage in background
+      _storage.saveVideoState(newState).catchError((e) {
+        debugPrint('Failed to save video state: $e');
       });
 
       // Perform the actual update
@@ -126,28 +168,102 @@ class VideoCollectionManager extends ChangeNotifier {
         userId: userId,
       );
 
-      // Refresh liked videos list
-      await fetchLikedVideos(userId);
+      // Refresh liked videos list in background
+      fetchLikedVideos(userId).catchError((e) {
+        debugPrint('Failed to refresh liked videos: $e');
+      });
     } catch (e) {
       // Revert optimistic update on error
-      await _updateVideoState(videoId, (currentState) {
-        return currentState!.copyWith(
-          isLiked: !currentState.isLiked,
+      final currentState = await getVideoState(videoId);
+      final video = currentState?.videoData;
+      if (video != null) {
+        final isCurrentlyLiked = !video.isLikedByUser(userId);
+        final newLikedBy = Set<String>.from(video.likedBy);
+        if (isCurrentlyLiked) {
+          newLikedBy.remove(userId);
+        } else {
+          newLikedBy.add(userId);
+        }
+
+        final revertedVideo = Video(
+          id: video.id,
+          url: video.url,
+          userId: video.userId,
+          title: video.title,
+          description: video.description,
+          likes: video.likes + (isCurrentlyLiked ? -1 : 1),
+          comments: video.comments,
+          createdAt: video.createdAt,
+          metadata: video.metadata,
+          likedBy: newLikedBy,
+          savedBy: video.savedBy,
+        );
+
+        final revertedState = VideoState(
+          videoId: videoId,
+          lastUpdated: DateTime.now(),
+          isLiked: !isCurrentlyLiked,
+          isSaved: currentState?.isSaved ?? false,  // Safe access to nullable state
+          videoData: revertedVideo,
           error: 'Failed to toggle like: $e',
         );
-      });
+        _cache.put(revertedState);
+        notifyListeners();
+
+        // Update storage in background
+        _storage.saveVideoState(revertedState).catchError((e) {
+          debugPrint('Failed to save reverted state: $e');
+        });
+      }
     }
   }
 
   /// Toggles the saved status of a video
   Future<void> toggleSaveVideo(String videoId, String userId) async {
     try {
-      await _updateVideoState(videoId, (currentState) {
-        final isSaved = !(currentState?.isSaved ?? false);
-        return (currentState ?? VideoState(
-          videoId: videoId,
-          lastUpdated: DateTime.now(),
-        )).copyWith(isSaved: isSaved);
+      // Get current state
+      final currentState = await getVideoState(videoId);
+      final video = currentState?.videoData;
+      if (video == null) return;
+
+      // Calculate new state
+      final isCurrentlySaved = video.isSavedByUser(userId);
+      final newSavedBy = Set<String>.from(video.savedBy);
+      if (isCurrentlySaved) {
+        newSavedBy.remove(userId);
+      } else {
+        newSavedBy.add(userId);
+      }
+
+      // Create optimistically updated video
+      final updatedVideo = Video(
+        id: video.id,
+        url: video.url,
+        userId: video.userId,
+        title: video.title,
+        description: video.description,
+        likes: video.likes,
+        comments: video.comments,
+        createdAt: video.createdAt,
+        metadata: video.metadata,
+        likedBy: video.likedBy,
+        savedBy: newSavedBy,
+      );
+
+      // Update state with optimistic changes immediately
+      final newState = VideoState(
+        videoId: videoId,
+        lastUpdated: DateTime.now(),
+        isLiked: currentState?.isLiked ?? false,  // Safe access to nullable state
+        isSaved: !isCurrentlySaved,
+        videoData: updatedVideo,
+      );
+      _cache.put(newState);
+      notifyListeners();
+
+      // Update storage in background
+      _storage.saveVideoState(newState).catchError((e) {
+        debugPrint('Failed to save video state: $e');
       });
 
       // Perform the actual update
@@ -156,16 +272,53 @@ class VideoCollectionManager extends ChangeNotifier {
         userId: userId,
       );
 
-      // Refresh saved videos list
-      await fetchSavedVideos(userId);
+      // Refresh saved videos list in background
+      fetchSavedVideos(userId).catchError((e) {
+        debugPrint('Failed to refresh saved videos: $e');
+      });
     } catch (e) {
       // Revert optimistic update on error
-      await _updateVideoState(videoId, (currentState) {
-        return currentState!.copyWith(
-          isSaved: !currentState.isSaved,
+      final currentState = await getVideoState(videoId);
+      final video = currentState?.videoData;
+      if (video != null) {
+        final isCurrentlySaved = !video.isSavedByUser(userId);
+        final newSavedBy = Set<String>.from(video.savedBy);
+        if (isCurrentlySaved) {
+          newSavedBy.remove(userId);
+        } else {
+          newSavedBy.add(userId);
+        }
+
+        final revertedVideo = Video(
+          id: video.id,
+          url: video.url,
+          userId: video.userId,
+          title: video.title,
+          description: video.description,
+          likes: video.likes,
+          comments: video.comments,
+          createdAt: video.createdAt,
+          metadata: video.metadata,
+          likedBy: video.likedBy,
+          savedBy: newSavedBy,
+        );
+
+        final revertedState = VideoState(
+          videoId: videoId,
+          lastUpdated: DateTime.now(),
+          isLiked: currentState?.isLiked ?? false,  // Safe access to nullable state
+          isSaved: !isCurrentlySaved,
+          videoData: revertedVideo,
           error: 'Failed to toggle save: $e',
         );
-      });
+        _cache.put(revertedState);
+        notifyListeners();
+
+        // Update storage in background
+        _storage.saveVideoState(revertedState).catchError((e) {
+          debugPrint('Failed to save reverted state: $e');
+        });
+      }
     }
   }
 
