@@ -108,9 +108,34 @@ This document tracks all implemented and planned features for the application. I
 - [ ] **Viewing & Managing Saved Videos**  
   *Description:* Allow users to bookmark and manage their favorite videos for quick retrieval later.  
   **Sub-Tasks:**
-  - [ ] Create a dedicated UI section for saved videos  
+  - [✓] Create a dedicated UI section for saved videos  
     *Location:* `lib/screens/saved_videos_screen.dart`
-  - [ ] Implement functionality to add, remove, or update saved items (sync with Firestore)
+    - Implemented tabbed interface for liked/saved videos
+    - Created reusable VideoGrid component
+    - Added real-time updates via VideoCollectionManager
+    - Implemented removal functionality
+    - Added comprehensive widget tests
+    Features tested:
+    - Tab navigation
+    - Video display
+    - Loading states
+    - Error handling
+    - Empty states
+    - Remove functionality
+  - [✓] Implement functionality to add, remove, or update saved items (sync with Firestore)
+    *Location:* 
+    - `lib/services/firestore_service.dart` - Save data management
+    - `lib/controllers/video_collection_manager.dart` - State management
+    - `lib/models/video.dart` - Save data model
+    Features implemented:
+    - Save/unsave toggle functionality
+    - Optimistic updates for responsive UI
+    - Real-time Firestore integration
+    - Error handling with user feedback
+  - [ ] Navigation and thumbnail integration (In Progress)
+    - Add collections button to bottom navigation
+    - Set up proper routing
+    - Implement thumbnail generation (deferred)
 
 ## Should-Have Features
 
