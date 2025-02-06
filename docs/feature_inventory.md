@@ -105,7 +105,7 @@ This document tracks all implemented and planned features for the application. I
     - `lib/widgets/video_viewing/like_animation.dart`
     - `lib/screens/video_viewing_screen.dart`
 
-- [ ] **Viewing & Managing Saved Videos**  
+- [✓] **Viewing & Managing Saved Videos**  
   *Description:* Allow users to bookmark and manage their favorite videos for quick retrieval later.  
   **Sub-Tasks:**
   - [✓] Create a dedicated UI section for saved videos  
@@ -144,6 +144,28 @@ This document tracks all implemented and planned features for the application. I
 
 ## Should-Have Features
 
+- [✓] **Saving/Bookmarking Video Content**  
+  *Description:* Let users bookmark their favorite videos for inspiration and future reference.  
+  **Sub-Tasks:**
+  - [✓] Develop a bookmarking feature through a "Save" button on video cards  
+    *Location:* 
+    - `lib/widgets/video_viewing/right_actions_column.dart`
+    - `lib/widgets/video_viewing/interaction_animation.dart`
+    Features implemented:
+    - Save button with animation
+    - Real-time save count updates
+    - Optimistic UI updates
+    - Error handling with user feedback
+  - [✓] Persist saved items in the user's profile collection in Firestore
+    *Location:* 
+    - `lib/services/firestore_service.dart`
+    - `lib/controllers/video_collection_manager.dart`
+    Features implemented:
+    - Firestore subcollections for saved videos
+    - Real-time synchronization
+    - Atomic updates for save operations
+    - Error recovery mechanisms
+
 - [ ] **Filtering Videos by D&D Categories**  
   *Description:* Allow users to narrow down the video feed by specific content categories related to tabletop RPGs.  
   **Sub-Tasks:**
@@ -157,13 +179,6 @@ This document tracks all implemented and planned features for the application. I
   - [ ] Attach metadata/tags to videos in `lib/models/video.dart`
   - [ ] Build a filtering UI that queries Firestore based on selected tags  
     *Location:* `lib/screens/filter_screen.dart`
-
-- [ ] **Saving/Bookmarking Video Content**  
-  *Description:* Let users bookmark their favorite videos for inspiration and future reference.  
-  **Sub-Tasks:**
-  - [ ] Develop a bookmarking feature through a "Save" button on video cards  
-    *Location:* `lib/widgets/video_card.dart`
-  - [ ] Persist saved items in the user's profile collection in Firestore
 
 - [ ] **Collection Creation for Saved Content**  
   *Description:* Permit users to organize saved videos into manageable, custom collections.  
