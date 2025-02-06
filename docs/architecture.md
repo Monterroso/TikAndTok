@@ -51,8 +51,38 @@ TikAndTok/
 │ │ │ │ └── VideoFeed // Manages multiple videos
 │ │ │   ├── PageView.builder for smooth scrolling
 │ │ │   └── Video URL validation
+│ │ │ ├── comments/ // Comment-related components
+│ │ │ │ ├── comments_sheet.dart // Modal bottom sheet for comments
+│ │ │ │ │ └── CommentsSheet // Container for comment interface
+│ │ │ │ │   ├── Real-time comment count updates
+│ │ │ │ │   ├── Comment list integration
+│ │ │ │ │   └── Comment input field
+│ │ │ │ ├── comment_list.dart // Scrollable list of comments
+│ │ │ │ │ └── CommentList // Manages comment display
+│ │ │ │ │   ├── Real-time comment streaming
+│ │ │ │ │   ├── Newest-first ordering
+│ │ │ │ │   └── Delete functionality
+│ │ │ │ ├── comment_tile.dart // Individual comment display
+│ │ │ │ │ └── CommentTile // Single comment UI
+│ │ │ │ │   ├── User profile integration
+│ │ │ │ │   ├── Dynamic alignment
+│ │ │ │ │   └── Delete option
+│ │ │ │ └── comment_input.dart // Comment input field
+│ │ │ │   └── CommentInput // New comment creation
+│ │ │ │     ├── Input validation
+│ │ │ │     ├── Loading states
+│ │ │ │     └── Error handling
 │ │ │ ├── top_search_button.dart // Search button UI (functionality pending)
-│ │ │ ├── right_actions_column.dart // Action buttons UI (functionality pending)
+│ │ │ ├── right_actions_column.dart // Action buttons UI
+│ │ │ │ └── RightActionsColumn // Interactive buttons
+│ │ │ │   ├── Like button with animation
+│ │ │ │   ├── Comment button with count
+│ │ │ │   └── Other action buttons
+│ │ │ ├── like_animation.dart // Like animation component
+│ │ │ │ └── LikeAnimation // Heart animation
+│ │ │ │   ├── Double-tap handling
+│ │ │ │   ├── Animation states
+│ │ │ │   └── Haptic feedback
 │ │ │ ├── creator_info_group.dart // Creator information UI
 │ │ │ └── custom_bottom_navigation_bar.dart // Basic navigation
 │ │ ├── auth_form.dart // Renders the authentication form for login and sign-up
@@ -204,10 +234,35 @@ The implementation follows these key principles:
    → UI refresh on confirmation/error
    ```
 
-4. **State Management**:
+4. **Comment Flow**:
+   ```
+   Comment Creation:
+   User input → CommentInput
+   → Firestore transaction (atomic update)
+     ├── Add comment to subcollection
+     └── Increment video comment count
+   → Real-time comment stream update
+   → UI refresh (CommentList & comment count)
+
+   Comment Display:
+   Firestore comments subcollection
+   → Comment model
+   → CommentList
+   → CommentTile
+     └── User profile stream for each comment
+
+   Comment Deletion:
+   Delete action → Firestore transaction
+     ├── Remove comment from subcollection
+     └── Decrement video comment count
+   → Real-time updates to UI
+   ```
+
+5. **State Management**:
    - Video state managed by FrontPage
    - Profile data streamed directly in CreatorInfoGroup
    - Like states managed with optimistic updates
+   - Comment state managed through real-time streams
    - Loading and error states handled at component level
 
 ## Error Handling

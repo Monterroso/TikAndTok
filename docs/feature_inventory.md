@@ -4,7 +4,7 @@ This document tracks all implemented and planned features for the application. I
 
 ## Must-Have Features
 
-- [ ] **User Authentication & Profile Management**  
+- [✓] **User Authentication & Profile Management**  
   *Description:* Enable users to securely register, log in, and manage their profiles using Firebase Authentication.  
   **Sub-Tasks:**
   - [✓] Implement sign-up (email/password and/or social logins)  
@@ -70,7 +70,7 @@ This document tracks all implemented and planned features for the application. I
 
   *Note: Core video playback, feed functionality, and profile integration are complete. Interactive features (likes, comments, etc.) will be implemented in the next phase.*
 
-- [ ] **Basic Video Interaction (Like & Comment)**  
+- [✓] **Basic Video Interaction (Like & Comment)**  
   *Description:* Enable users to interact with videos by liking and commenting.  
   **Sub-Tasks:**
   - [✓] Implement the like functionality with real-time UI updates  
@@ -86,8 +86,20 @@ This document tracks all implemented and planned features for the application. I
     - Real-time Firestore integration
     - Error handling with user feedback
     - Haptic feedback on interactions
-  - [ ] Create and integrate a basic comment interface with Firestore support  
-    *Location:* `lib/screens/video_details_screen.dart`
+  - [✓] Create and integrate a basic comment interface with Firestore support  
+    *Location:* 
+    - `lib/widgets/video_viewing/comments/comments_sheet.dart` - Modal bottom sheet
+    - `lib/widgets/video_viewing/comments/comment_list.dart` - Scrollable comment list
+    - `lib/widgets/video_viewing/comments/comment_tile.dart` - Individual comment display
+    - `lib/widgets/video_viewing/comments/comment_input.dart` - Comment input field
+    Features implemented:
+    - Real-time comment updates
+    - Comment count tracking
+    - User profile integration
+    - Delete own comments
+    - Newest comments first
+    - Error handling and loading states
+    - Proper UI alignment for own/other comments
   - [✓] Ensure immediate feedback (e.g., icon animations) during interactions
     *Location:* 
     - `lib/widgets/video_viewing/like_animation.dart`
