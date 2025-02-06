@@ -132,10 +132,15 @@ This document tracks all implemented and planned features for the application. I
     - Optimistic updates for responsive UI
     - Real-time Firestore integration
     - Error handling with user feedback
-  - [ ] Navigation and thumbnail integration (In Progress)
-    - Add collections button to bottom navigation
-    - Set up proper routing
-    - Implement thumbnail generation (deferred)
+  - [✓] Navigation integration
+    *Location:* `lib/widgets/video_viewing/custom_bottom_navigation_bar.dart`
+    Features implemented:
+    - Collections button in bottom navigation
+    - Proper routing to SavedVideosScreen
+    - Visual consistency with existing UI
+    - Comprehensive widget tests
+  - [ ] Thumbnail generation (deferred)
+    - Will be implemented as a separate enhancement
 
 ## Should-Have Features
 

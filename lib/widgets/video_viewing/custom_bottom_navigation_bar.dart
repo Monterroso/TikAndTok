@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../screens/profile_screen.dart';
+import '../../screens/saved_videos_screen.dart';
 
 /// CustomBottomNavigationBar sets up a fixed navigation bar at the bottom of the screen.
-/// It includes an upload button (centered) and a profile button (aligned to the right).
+/// It includes:
+/// - Collections button (left-aligned)
+/// - Upload button (centered)
+/// - Profile button (right-aligned)
 class CustomBottomNavigationBar extends StatelessWidget {
   const CustomBottomNavigationBar({Key? key}) : super(key: key);
 
@@ -12,17 +16,38 @@ class CustomBottomNavigationBar extends StatelessWidget {
       color: Colors.black.withOpacity(0.7),
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          // Spacer to help center the upload button.
-          const Expanded(child: SizedBox()),
-          // Centered upload button.
+          // Collections button on the left
+          Expanded(
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: IconButton(
+                icon: const Icon(Icons.collections_bookmark, color: Colors.white),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SavedVideosScreen(),
+                    ),
+                  );
+                },
+                tooltip: 'Collections',
+              ),
+            ),
+          ),
+          // Centered upload button
           ElevatedButton(
             onPressed: () {
               // TODO: Implement upload functionality.
             },
+            style: ElevatedButton.styleFrom(
+              shape: const CircleBorder(),
+              padding: const EdgeInsets.all(12),
+            ),
             child: const Icon(Icons.add, color: Colors.white),
           ),
-          // Profile button aligned to the right.
+          // Profile button on the right
           Expanded(
             child: Align(
               alignment: Alignment.centerRight,
@@ -36,6 +61,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
                     ),
                   );
                 },
+                tooltip: 'Profile',
               ),
             ),
           ),
