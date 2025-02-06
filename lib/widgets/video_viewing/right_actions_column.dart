@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/video.dart';
 import '../../services/firestore_service.dart';
-import 'like_animation.dart';
+import 'interaction_animation.dart';
 import 'comments/comments_sheet.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -11,16 +11,22 @@ class RightActionsColumn extends StatelessWidget {
   final Video video;
   final String currentUserId;
   final Function(bool) onLikeChanged;
+  final Function(bool)? onSaveChanged;
   final bool isLiked;
+  final bool isSaved;
   final int likeCount;
+  final int saveCount;
 
   const RightActionsColumn({
     Key? key,
     required this.video,
     required this.currentUserId,
     required this.onLikeChanged,
+    this.onSaveChanged,
     required this.isLiked,
+    this.isSaved = false,
     required this.likeCount,
+    this.saveCount = 0,
   }) : super(key: key);
 
   @override
@@ -50,10 +56,13 @@ class RightActionsColumn extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Like button with animation
-            LikeAnimation(
-              isLiked: isLiked,
-              likeCount: likeCount,
+            InteractionAnimation(
+              isActive: isLiked,
+              count: likeCount,
               onTap: () => onLikeChanged(!isLiked),
+              activeIcon: Icons.favorite,
+              inactiveIcon: Icons.favorite_border,
+              activeColor: Colors.red,
             ),
             const SizedBox(height: 20.0),
             // Comments button with a numerical count displayed below.
@@ -68,12 +77,14 @@ class RightActionsColumn extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20.0),
-            // Save button.
-            IconButton(
-              icon: const Icon(Icons.bookmark, color: Colors.white),
-              onPressed: () {
-                // TODO: Implement save functionality.
-              },
+            // Save button with animation
+            InteractionAnimation(
+              isActive: isSaved,
+              count: saveCount,
+              onTap: () => onSaveChanged?.call(!isSaved),
+              activeIcon: Icons.bookmark,
+              inactiveIcon: Icons.bookmark_border,
+              activeColor: Colors.amber,
             ),
             const SizedBox(height: 20.0),
             // Share button.

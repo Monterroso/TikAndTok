@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/video.dart';
 import 'video_background.dart';
-import 'like_animation.dart';
+import 'interaction_animation.dart';
 
 /// VideoFeed implements a vertically scrollable feed of videos.
 /// It uses PageView for smooth transitions and manages video loading.
@@ -105,11 +105,15 @@ class _VideoFeedState extends State<VideoFeed> {
                 Positioned(
                   left: _doubleTapPosition.dx - 40, // Center the heart
                   top: _doubleTapPosition.dy - 40,
-                  child: LikeAnimation(
-                    isLiked: true,
-                    likeCount: widget.currentVideoLikeCount,
+                  child: InteractionAnimation(
+                    isActive: true,
+                    count: widget.currentVideoLikeCount,
                     onTap: () {}, // No-op since this is just for animation
                     showPopupAnimation: true,
+                    activeIcon: Icons.favorite,
+                    inactiveIcon: Icons.favorite_border,
+                    activeColor: Colors.red,
+                    showCount: false, // Hide count for popup animation
                   ),
                 ),
             ],
