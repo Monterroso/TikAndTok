@@ -409,8 +409,9 @@ class VideoCollectionManager extends ChangeNotifier {
     final video = state.videoData;
     if (video == null || _currentUserId == null) return video?.likeCount ?? 0;
 
-    final isLikedInCache = likedVideos.any((v) => v.id == videoId);
-    final isLikedInVideo = video.isLikedByUser(_currentUserId!);
+    // Use cached state for optimistic updates
+    final isLikedInCache = state.isLiked;
+    final isLikedInVideo = video.isLikedByUser(_currentUserId);
 
     // If the states differ, adjust the count accordingly
     if (isLikedInCache != isLikedInVideo) {
@@ -428,8 +429,9 @@ class VideoCollectionManager extends ChangeNotifier {
     final video = state.videoData;
     if (video == null || _currentUserId == null) return video?.saveCount ?? 0;
 
-    final isSavedInCache = savedVideos.any((v) => v.id == videoId);
-    final isSavedInVideo = video.isSavedByUser(_currentUserId!);
+    // Use cached state for optimistic updates
+    final isSavedInCache = state.isSaved;
+    final isSavedInVideo = video.isSavedByUser(_currentUserId);
 
     // If the states differ, adjust the count accordingly
     if (isSavedInCache != isSavedInVideo) {

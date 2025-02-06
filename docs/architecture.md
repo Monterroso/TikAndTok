@@ -19,6 +19,22 @@ TikAndTok/
 │ │ ├── video.dart // Video model with VideoState, Firestore conversion, and URL validation
 │ │ ├── comment.dart // Comment model for video interactions
 │ │ └── collection.dart // (Planned) User-defined collections for bookmarked or grouped videos
+│ ├── state/ // State management and caching layer
+│ │ ├── video_state.dart // Immutable video state representation
+│ │ │ └── VideoState // Core state class
+│ │ │   ├── Properties // videoId, isLiked, isSaved, etc.
+│ │ │   ├── Factory constructors // loading, error states
+│ │ │   └── State management // copyWith, equality, etc.
+│ │ ├── video_state_cache.dart // LRU cache implementation
+│ │ │ └── VideoStateCache // Memory cache manager
+│ │ │   ├── Cache operations // get, put, remove
+│ │ │   ├── LRU implementation // eviction policy
+│ │ │   └── Cleanup // stale data management
+│ │ └── video_state_storage.dart // Persistent storage layer
+│ │   └── VideoStateStorage // Local storage manager
+│ │     ├── Storage operations // save, load, remove
+│ │     ├── Data migration // version handling
+│ │     └── Cleanup // old data removal
 │ ├── screens/ // Entire UI pages of the application
 │ │ ├── login_screen.dart // Handles user authentication (login/sign-up)
 │ │ ├── home_screen.dart // (Deprecated) Previous home screen, replaced by video_viewing_screen
@@ -31,10 +47,15 @@ TikAndTok/
 │ │ ├── saved_videos_screen.dart // Displays liked and saved videos in a tabbed interface
 │ │ ├── filter_screen.dart // (Planned) Allows filtering of videos by various criteria
 │ │ └── collections_screen.dart // (Planned) UI for managing user-created collections
-│ ├── controllers/ // State management and business logic
+│ ├── controllers/ // Business logic and state coordination
 │ │ └── video_collection_manager.dart // Manages video collections and interactions
+│ │   └── VideoCollectionManager // Central state coordinator
+│ │     ├── State management // cache and storage coordination
+│ │     ├── Optimistic updates // immediate UI feedback
+│ │     ├── Background operations // server updates
+│ │     └── Error recovery // state reconciliation
 │ ├── services/ // Service layer handling business logic and Firebase interactions
-│ │ ├── auth_service.dart // Authentication operations (email/password, Google sign-in, password reset, etc.)
+│ │ ├── auth_service.dart // Authentication operations
 │ │ ├── firestore_service.dart // CRUD operations for Cloud Firestore
 │ │ │ └── Video Operations // Methods for video data management
 │ │ │   ├── streamVideos() // Real-time video feed with pagination
@@ -381,6 +402,118 @@ The implementation follows these principles:
 - Clear separation of concerns
 - Reusable components
 - Comprehensive test coverage
+
+## State Management
+
+Our application uses a layered state management approach that combines Provider for dependency injection with a custom state management system for video interactions. This system is designed to provide:
+
+1. **Optimistic Updates**: Immediate UI feedback for user actions
+2. **State Persistence**: Efficient caching and local storage
+3. **Background Operations**: Asynchronous server updates
+4. **Error Recovery**: Automatic state reconciliation
+
+### Core Components
+
+#### 1. State Layer (`lib/state/`)
+- `VideoState`: Immutable state class representing video UI state
+  ```dart
+  class VideoState {
+    final String videoId;
+    final bool isLiked;
+    final bool isSaved;
+    final DateTime lastUpdated;
+    final Video? videoData;
+    final bool isLoading;
+    final String? error;
+  }
+  ```
+- `VideoStateCache`: LRU cache implementation for memory efficiency
+  - Fixed-size cache with LRU eviction
+  - Change notifications for UI updates
+  - Automatic stale data cleanup
+- `VideoStateStorage`: Persistent storage using SharedPreferences
+  - Serialization/deserialization of states
+  - Data versioning and migration
+  - Background cleanup operations
+
+#### 2. Controller Layer (`lib/controllers/`)
+- `VideoCollectionManager`: Central state coordinator
+  - Coordinates between cache and storage
+  - Handles optimistic updates
+  - Manages background operations
+  - Provides error recovery
+  - Exposes state through Provider
+
+### Data Flow
+
+1. **User Interaction**
+   ```
+   User Action (like/save)
+   → VideoCollectionManager
+     ├── Immediate cache update
+     ├── Storage persistence
+     ├── Server update
+     └── Background refresh
+   → UI update via ChangeNotifier
+   ```
+
+2. **State Recovery**
+   ```
+   Error Detection
+   → Revert cache state
+   → Update storage
+   → Notify UI
+   → Log error
+   ```
+
+3. **Background Operations**
+   ```
+   Server Update
+   → Update cache if needed
+   → Refresh collections
+   → Clean stale data
+   ```
+
+### Performance Optimizations
+
+1. **Memory Management**
+   - LRU cache with configurable size
+   - Automatic cleanup of stale data
+   - Efficient state storage format
+
+2. **UI Responsiveness**
+   - Immediate feedback through optimistic updates
+   - Background processing for heavy operations
+   - Debounced storage operations
+
+3. **Network Efficiency**
+   - Batched server updates
+   - Background collection refreshes
+   - Cached state reconciliation
+
+### Implementation Guidelines
+
+1. **State Updates**
+   - Always use immutable state objects
+   - Apply optimistic updates immediately
+   - Handle errors with state reversion
+   - Maintain consistency across layers
+
+2. **Cache Management**
+   - Monitor cache size and performance
+   - Implement proper cleanup strategies
+   - Handle eviction gracefully
+
+3. **Storage Operations**
+   - Version data structures
+   - Implement migration strategies
+   - Clean up old data periodically
+
+4. **Error Handling**
+   - Log all errors for debugging
+   - Provide user feedback when appropriate
+   - Implement recovery mechanisms
+   - Maintain data consistency
 
 ---
 
