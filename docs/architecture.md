@@ -15,10 +15,10 @@ TikAndTok/
 ├── ios/ // Native iOS code & configuration (includes GoogleService-Info.plist)
 ├── lib/
 │ ├── models/ // Data models for the application
-│ │ ├── user.dart // User model for authentication and profile information
+│ │ ├── user.dart // (TODO) User model for authentication and profile information
 │ │ ├── video.dart // Video model with VideoState, Firestore conversion, and URL validation
 │ │ ├── comment.dart // Comment model for video interactions
-│ │ └── collection.dart // User-defined collections (for bookmarked or grouped videos)
+│ │ └── collection.dart // (Planned) User-defined collections for bookmarked or grouped videos
 │ ├── screens/ // Entire UI pages of the application
 │ │ ├── login_screen.dart // Handles user authentication (login/sign-up)
 │ │ ├── home_screen.dart // (Deprecated) Previous home screen, replaced by video_viewing_screen
@@ -45,7 +45,7 @@ TikAndTok/
 │ │ │   ├── toggleSave() // Toggle video save status
 │ │ │   └── getVideoCollections() // Fetch user's video collections
 │ │ ├── firebase_storage_service.dart // Manages video uploads and downloads
-│ │ └── messaging_service.dart // Handles push notifications
+│ │ └── messaging_service.dart // (Planned) Handles push notifications
 │ ├── widgets/ // Reusable UI components across the app
 │ │ ├── video_viewing/ // Video viewing screen components
 │ │ │ ├── video_background.dart // Video playback with error handling
@@ -84,7 +84,7 @@ TikAndTok/
 │ │ │ │     ├── Input validation
 │ │ │ │     ├── Loading states
 │ │ │ │     └── Error handling
-│ │ │ ├── top_search_button.dart // Search button UI
+│ │ │ ├── creator_info_group.dart // Creator information display
 │ │ │ ├── right_actions_column.dart // Action buttons UI
 │ │ │ │ └── RightActionsColumn // Interactive buttons
 │ │ │ │   ├── Like button with animation
@@ -98,17 +98,20 @@ TikAndTok/
 │ │ │ │   ├── Haptic feedback
 │ │ │ │   ├── Optional count display
 │ │ │ │   └── State management
-│ │ │ ├── creator_info_group.dart // Creator information UI
-│ │ │ └── custom_bottom_navigation_bar.dart // Basic navigation
+│ │ │ ├── custom_bottom_navigation_bar.dart // Basic navigation
+│ │ │ └── top_search_button.dart // Search functionality
 │ │ ├── auth/ // Authentication-related widgets
-│ │ │ ├── auth_form.dart // Authentication form
-│ │ │ ├── auth_buttons.dart // Common buttons
-│ │ │ ├── auth_fields.dart // Input fields
-│ │ │ └── auth_snackbars.dart // Authentication messages
-│ │ ├── email_verification_banner.dart // Email verification prompt
-│ │ └── profile_card.dart // User profile display
+│ │ │ ├── auth_form.dart // Authentication form with validation
+│ │ │ ├── auth_buttons.dart // Sign-in, sign-up, and Google auth buttons
+│ │ │ ├── auth_fields.dart // Email and password input fields with validation
+│ │ │ └── auth_snackbars.dart // Authentication feedback messages
+│ │ ├── email_verification_banner.dart // Email verification prompt and resend
+│ │ ├── profile_card.dart // User profile display with image
+│ │ ├── video_card.dart // (Planned) Reusable video card component
+│ │ ├── common_button.dart // (Planned) Common button styles
+│ │ └── video_interaction.dart // (Planned) Common video interaction components
 │ ├── firebase_options.dart // Firebase configuration
-│ └── main.dart // Application entry point
+│ └── main.dart // Application entry point with Firebase initialization
 ├── test/ // Test files
 │ ├── app_test.dart // Main app tests
 │ ├── helpers/ // Test helpers and mocks
@@ -175,6 +178,23 @@ TikAndTok/
 - **Clean Architecture:**  
   Our codebase aims to separate concerns by organizing code into models, screens, services, and widgets. This enables scalability and easier testing of individual components.
 
+## Implementation Status
+
+### Implemented Features
+- Authentication (Email/Password and Google Sign-in)
+- Video Playback and Feed
+- Like/Save Functionality
+- Comments System
+- Profile Management
+- Basic Navigation
+
+### Planned Features
+- User Collections
+- Push Notifications
+- Video Filtering
+- Common UI Components
+- Advanced Search
+
 ## Video Playback Implementation
 
 1. **Video Model** (`models/video.dart`):
@@ -185,6 +205,12 @@ TikAndTok/
    - Links videos to creator profiles via userId
    - Manages likes using Set<String> for efficient storage
    - Provides helper methods for like status and count
+   - Currently supports .mov format (iPhone default)
+   - (TODO) Define and implement video size limitations based on:
+     - Firebase Storage quotas
+     - App performance considerations
+     - User experience (upload/download times)
+     - Mobile data usage optimization
 
 2. **Video Feed** (`widgets/video_viewing/video_feed.dart`):
    - Uses PageView.builder for smooth vertical scrolling

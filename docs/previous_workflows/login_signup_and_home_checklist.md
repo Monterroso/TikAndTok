@@ -147,7 +147,7 @@ This document outlines all tasks to implement the login/signup flow and a basic 
 
 ## 7. Routing and Navigation
 
-- [ ] **Define Clear Navigation Routes:**
+- [X] **Define Clear Navigation Routes:**
   - Configure routes in `main.dart` or within a dedicated routing file.
   - Ensure that the navigation flow adheres to our architecture:
     - Successful login moves to the main page.
@@ -157,29 +157,29 @@ This document outlines all tasks to implement the login/signup flow and a basic 
 
 ## 8. Testing & Verification
 
-- [ ] **Email/Password Flow:**
+- [X] **Email/Password Flow:**
   - Test the sign-in and sign-up processes with valid inputs.
-- [ ] **Google Authentication Flow:**
+- [x] **Google Authentication Flow:**
   - Validate that Google sign-in works correctly and the necessary configuration files are current.
-- [ ] **Logout Flow:**
+- [X] **Logout Flow:**
   - Verify that clicking the logout button properly signs out the user and navigates back to the login screen.
-- [ ] **UI & Error Handling:**
+- [X] **UI & Error Handling:**
   - Ensure loading indicators and error messages are appropriately displayed during async operations.
 
 ---
 
 ## 9. Documentation & Inventory Updates
 
-- [ ] **Feature Inventory:**
+- [X] **Feature Inventory:**
   - Update `docs/feature_inventory.md` to reflect the new login/signup and main page features.
-- [ ] **Development Guidelines:**
+- [X] **Development Guidelines:**
   - Document any changes or additional practices in `docs/development_guidelines.md`.
 
 ---
 
 ## 10. Cross-Reference with Architecture Documentation
 
-- [ ] **Review Compliance with `docs/architecture.md`:**
+- [X] **Review Compliance with `docs/architecture.md`:**
   - Confirm that the project structure and directory usage (services, screens, widgets) align with our architectural patterns.
   - Verify state management with Provider follows our guidelines.
   - Check that service layer components (e.g., `auth_service.dart`) are properly encapsulated and used throughout the app.
