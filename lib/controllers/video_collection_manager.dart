@@ -14,10 +14,20 @@ class VideoCollectionManager extends ChangeNotifier {
   // Error and loading states
   String? _error;
   bool _isLoading = false;
+  bool _isLoadingLiked = false;
+  bool _isLoadingSaved = false;
+  
+  // Video collections
+  List<Video> _likedVideos = [];
+  List<Video> _savedVideos = [];
   
   // Getters
   String? get error => _error;
   bool get isLoading => _isLoading;
+  bool get isLoadingLiked => _isLoadingLiked;
+  bool get isLoadingSaved => _isLoadingSaved;
+  List<Video> get likedVideos => List.unmodifiable(_likedVideos);
+  List<Video> get savedVideos => List.unmodifiable(_savedVideos);
 
   VideoCollectionManager({
     FirestoreService? firestoreService,
@@ -107,6 +117,9 @@ class VideoCollectionManager extends ChangeNotifier {
         videoId: videoId,
         userId: userId,
       );
+
+      // Refresh liked videos list
+      await fetchLikedVideos(userId);
     } catch (e) {
       // Revert optimistic update on error
       await _updateVideoState(videoId, (currentState) {
@@ -134,6 +147,9 @@ class VideoCollectionManager extends ChangeNotifier {
         videoId: videoId,
         userId: userId,
       );
+
+      // Refresh saved videos list
+      await fetchSavedVideos(userId);
     } catch (e) {
       // Revert optimistic update on error
       await _updateVideoState(videoId, (currentState) {
@@ -145,13 +161,14 @@ class VideoCollectionManager extends ChangeNotifier {
     }
   }
 
-  /// Gets all liked videos
-  Future<List<Video>> getLikedVideos(String userId) async {
+  /// Fetches liked videos for a user
+  Future<void> fetchLikedVideos(String userId) async {
     try {
-      _isLoading = true;
+      _isLoadingLiked = true;
       notifyListeners();
 
       final videos = await _firestoreService.getLikedVideos(userId);
+      _likedVideos = videos;
       
       // Update cache with video states
       for (final video in videos) {
@@ -166,24 +183,23 @@ class VideoCollectionManager extends ChangeNotifier {
         });
       }
 
-      return videos;
+      _error = null;
     } catch (e) {
-      _error = 'Failed to get liked videos: $e';
-      notifyListeners();
-      return [];
+      _error = 'Failed to fetch liked videos: $e';
     } finally {
-      _isLoading = false;
+      _isLoadingLiked = false;
       notifyListeners();
     }
   }
 
-  /// Gets all saved videos
-  Future<List<Video>> getSavedVideos(String userId) async {
+  /// Fetches saved videos for a user
+  Future<void> fetchSavedVideos(String userId) async {
     try {
-      _isLoading = true;
+      _isLoadingSaved = true;
       notifyListeners();
 
       final videos = await _firestoreService.getSavedVideos(userId);
+      _savedVideos = videos;
       
       // Update cache with video states
       for (final video in videos) {
@@ -198,13 +214,11 @@ class VideoCollectionManager extends ChangeNotifier {
         });
       }
 
-      return videos;
+      _error = null;
     } catch (e) {
-      _error = 'Failed to get saved videos: $e';
-      notifyListeners();
-      return [];
+      _error = 'Failed to fetch saved videos: $e';
     } finally {
-      _isLoading = false;
+      _isLoadingSaved = false;
       notifyListeners();
     }
   }

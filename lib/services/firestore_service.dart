@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/video.dart';
 import '../models/comment.dart';
 import 'dart:collection';
+import 'package:flutter/foundation.dart';
 
 /// Service class to handle all Firestore document operations related to user profiles.
 /// This service is responsible for:
@@ -448,16 +449,24 @@ class FirestoreService {
   /// Gets all videos liked by a user
   Future<List<Video>> getLikedVideos(String userId) async {
     try {
+      debugPrint('Fetching liked videos for user: $userId');
       final querySnapshot = await _firestore
           .collection('videos')
           .where('likedBy', arrayContains: userId)
           .orderBy('createdAt', descending: true)
           .get();
 
+      debugPrint('Found ${querySnapshot.docs.length} liked videos');
       return querySnapshot.docs
           .map((doc) => Video.fromFirestore(doc))
           .toList();
     } catch (e) {
+      debugPrint('Error fetching liked videos: $e');
+      if (e.toString().contains('failed-precondition') && 
+          e.toString().contains('index')) {
+        throw 'Database index for liked videos is being built. Please try again in a few minutes. '
+            'If the problem persists, please contact support.';
+      }
       throw 'Failed to get liked videos: $e';
     }
   }
@@ -475,6 +484,11 @@ class FirestoreService {
           .map((doc) => Video.fromFirestore(doc))
           .toList();
     } catch (e) {
+      if (e.toString().contains('failed-precondition') && 
+          e.toString().contains('index')) {
+        throw 'Database index is being built. Please try again in a few minutes. '
+            'If the problem persists, please contact support.';
+      }
       throw 'Failed to get saved videos: $e';
     }
   }
