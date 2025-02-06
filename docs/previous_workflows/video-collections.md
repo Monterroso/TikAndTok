@@ -101,20 +101,20 @@ Step 2: Develop the VideoCollectionManager
 Objective:
 Create a centralized manager (or controller) to handle video collection operations. This includes fetching data (liked and saved videos), filtering, and searching—all while providing real-time updates via state management.
 
-3.1. Create Manager Class
+2.1. Create Manager Class
 File: lib/controllers/video_collection_manager.dart
 [ ] Class: VideoCollectionManager
 [ ] Extend ChangeNotifier to integrate with Provider.
 Why: Centralizing collection logic ensures consistency and reusability. The manager acts as the single point of truth for video collections.
 
-3.2. Define State Variables
+2.2. Define State Variables
 [ ] Define properties:
 List<Video> likedVideos = [];
 List<Video> savedVideos = [];
 Map<String, dynamic> metadata; (for categories, tags, etc.)
 Why: Tracking these states enables the UI to react to changes immediately and supports future extensions like filtering and search.
 
-3.3. Implement Fetching Methods
+2.3. Implement Fetching Methods
 [ ] Method: Future<void> fetchLikedVideos(String userId)
 [ ] Use the Firestore service's streamLikedVideos.
 [ ] Update likedVideos and call notifyListeners().
@@ -123,18 +123,18 @@ Why: Tracking these states enables the UI to react to changes immediately and su
 [ ] Update savedVideos and notify listeners.
 Why: These methods ensure the VideoCollectionManager fetches data in real time and updates the UI accordingly.
 
-3.4. Implement Filtering & Searching
+2.4. Implement Filtering & Searching
 [ ] Method: List<Video> filterVideosByCategory(String category)
 [ ] Filter the videos by the category field within the Video model.
 [ ] Method: List<Video> searchVideos(String query)
 [ ] Search the videos based on title, tags, or additional metadata.
 Why: Even though filtering/search might be a future feature, building the hooks now makes it easier to extend the manager without a major refactor later.
 
-3.5. Provider Integration
+2.5. Provider Integration
 [ ] Register VideoCollectionManager using Provider in the main widget tree.
 Why: Provider allows our UI components to listen for state changes and react in real time, streamlining the overall data flow.
 
-3.6. Testing
+2.6. Testing
 [ ] Write unit tests for state updates and action methods.
 [ ] Verify that notifyListeners() triggers proper UI refresh.
 Why: Ensuring the manager works as intended is vital for a reactive and stable UI.

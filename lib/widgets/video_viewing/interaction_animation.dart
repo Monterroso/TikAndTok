@@ -35,7 +35,6 @@ class InteractionAnimation extends StatefulWidget {
 class _InteractionAnimationState extends State<InteractionAnimation> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
-  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
@@ -47,24 +46,16 @@ class _InteractionAnimationState extends State<InteractionAnimation> with Single
 
     _scaleAnimation = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 1.2)
+        tween: Tween<double>(begin: 1.0, end: 1.5)
             .chain(CurveTween(curve: Curves.easeOut)),
         weight: 50,
       ),
       TweenSequenceItem(
-        tween: Tween<double>(begin: 1.2, end: 1.0)
+        tween: Tween<double>(begin: 1.5, end: 1.0)
             .chain(CurveTween(curve: Curves.easeIn)),
         weight: 50,
       ),
     ]).animate(_controller);
-
-    _fadeAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.5, 1.0, curve: Curves.easeOut),
-    ));
   }
 
   @override
@@ -76,12 +67,8 @@ class _InteractionAnimationState extends State<InteractionAnimation> with Single
   @override
   void didUpdateWidget(InteractionAnimation oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.isActive != oldWidget.isActive) {
-      HapticFeedback.mediumImpact();
-      // Only play animation when activating, not deactivating
-      if (widget.isActive) {
-        _controller.forward(from: 0.0);
-      }
+    if (widget.isActive != oldWidget.isActive && widget.isActive) {
+      _controller.forward(from: 0.0);
     }
   }
 
@@ -94,22 +81,13 @@ class _InteractionAnimationState extends State<InteractionAnimation> with Single
           onTap: () {
             widget.onTap();
             HapticFeedback.mediumImpact();
-            // Play animation when tapping to activate
-            if (!widget.isActive) {
-              _controller.forward(from: 0.0);
-            }
+            _controller.forward(from: 0.0);
           },
           child: AnimatedBuilder(
             animation: _controller,
             builder: (context, child) {
-              final scale = widget.showPopupAnimation 
-                ? _scaleAnimation.value 
-                : (widget.isActive && _controller.isAnimating 
-                    ? _scaleAnimation.value 
-                    : 1.0);
-              
               return Transform.scale(
-                scale: scale,
+                scale: _scaleAnimation.value,
                 child: Icon(
                   widget.isActive ? widget.activeIcon : widget.inactiveIcon,
                   size: 35.0,

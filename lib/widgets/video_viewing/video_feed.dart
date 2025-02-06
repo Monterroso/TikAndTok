@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/video.dart';
 import 'video_background.dart';
-import 'interaction_animation.dart';
 
 /// VideoFeed implements a vertically scrollable feed of videos.
 /// It uses PageView for smooth transitions and manages video loading.
@@ -28,14 +27,11 @@ class VideoFeed extends StatefulWidget {
 class _VideoFeedState extends State<VideoFeed> {
   late PageController _pageController;
   int _currentPageIndex = 0;
-  bool _showDoubleTapLike = false;
-  Offset _doubleTapPosition = Offset.zero;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
-    // Schedule the initial video notification for after the build
     if (widget.videos.isNotEmpty && widget.onVideoChanged != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         widget.onVideoChanged!(widget.videos[0]);
@@ -52,35 +48,15 @@ class _VideoFeedState extends State<VideoFeed> {
   void _onPageChanged(int index) {
     setState(() {
       _currentPageIndex = index;
-      _showDoubleTapLike = false;
     });
-    // Notify video change
     if (widget.onVideoChanged != null) {
       widget.onVideoChanged!(widget.videos[index]);
     }
-    // TODO: Implement prefetching of next video's creator data
   }
 
-  void _handleDoubleTap(TapDownDetails details) {
+  void _handleDoubleTap() {
     if (widget.onLikeChanged != null) {
-      // Toggle the like status
       widget.onLikeChanged!(!widget.isCurrentVideoLiked);
-      
-      // Only show the animation when liking, not unliking
-      if (!widget.isCurrentVideoLiked) {
-        setState(() {
-          _showDoubleTapLike = true;
-          _doubleTapPosition = details.localPosition;
-        });
-        // Hide the animation after it completes
-        Future.delayed(const Duration(milliseconds: 1000), () {
-          if (mounted) {
-            setState(() {
-              _showDoubleTapLike = false;
-            });
-          }
-        });
-      }
     }
   }
 
@@ -94,29 +70,9 @@ class _VideoFeedState extends State<VideoFeed> {
       itemBuilder: (context, index) {
         final video = widget.videos[index];
         return GestureDetector(
-          onDoubleTapDown: _handleDoubleTap,
-          onDoubleTap: () {}, // Required to detect double tap
-          child: Stack(
-            children: [
-              VideoBackground(
-                videoUrl: video.url,
-              ),
-              if (_showDoubleTapLike && index == _currentPageIndex)
-                Positioned(
-                  left: _doubleTapPosition.dx - 40, // Center the heart
-                  top: _doubleTapPosition.dy - 40,
-                  child: InteractionAnimation(
-                    isActive: true,
-                    count: widget.currentVideoLikeCount,
-                    onTap: () {}, // No-op since this is just for animation
-                    showPopupAnimation: true,
-                    activeIcon: Icons.favorite,
-                    inactiveIcon: Icons.favorite_border,
-                    activeColor: Colors.red,
-                    showCount: false, // Hide count for popup animation
-                  ),
-                ),
-            ],
+          onDoubleTap: _handleDoubleTap,
+          child: VideoBackground(
+            videoUrl: video.url,
           ),
         );
       },
