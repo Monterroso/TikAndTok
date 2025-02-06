@@ -14,7 +14,7 @@ Implementation Decisions & Clarifications:
    - Add savedBy Set<String> to Video model, similar to likedBy
    - Keep category and tags within the metadata field for flexibility
 
-2. UI/UX Decisions: (In Progress)
+2. UI/UX Decisions: ✓
    - Add new icon to CustomBottomNavigationBar for collections
    - Create separate tabs for liked and saved videos within collections view
    - Follow TikTok's placement for navigation items
@@ -25,10 +25,10 @@ Implementation Decisions & Clarifications:
      - ✓ Maintain existing animation pattern
 
 3. Implementation Approach: ✓
-   - Use optimistic updates for both likes and saves
-   - Implement placeholder thumbnails initially (TODO: proper thumbnail generation)
-   - No batch operations for now to maintain simplicity
-   - Follow existing patterns for error handling and loading states
+   - ✓ Use optimistic updates for both likes and saves
+   - ✓ Implement placeholder thumbnails initially (TODO: proper thumbnail generation)
+   - ✓ No batch operations for now to maintain simplicity
+   - ✓ Follow existing patterns for error handling and loading states
 
 4. Performance Considerations:
    - Focus on functionality in low-stress environments initially
@@ -140,7 +140,7 @@ Why: Provider allows our UI components to listen for state changes and react in 
 Why: Ensuring the manager works as intended is vital for a reactive and stable UI.
 
 ---
-Step 3: UI Components Refactoring (In Progress)
+Step 3: UI Components Refactoring (Completed)
 Objective:
 Refactor existing UI components to support both like and save interactions with consistent behavior.
 
@@ -151,35 +151,38 @@ Refactor existing UI components to support both like and save interactions with 
 [✓] Update existing usages in RightActionsColumn
 [✓] Test animation behavior for both like and save
 
-3.2. Update RightActionsColumn (Next Task)
-[ ] Modify save button to use InteractionAnimation
-[ ] Add save interaction handling
-[ ] Ensure proper state management for both actions
+3.2. Update RightActionsColumn ✓
+[✓] Modify save button to use InteractionAnimation
+[✓] Add save interaction handling
+[✓] Ensure proper state management for both actions
 
 ---
-Step 4: UI Integration on the Video Feed
+Step 4: UI Integration on the Video Feed (In Progress)
 Objective:
 Enhance the video feed interface by adding buttons for liking and saving videos. The UI must offer intuitive visual feedback and connect user interactions with the underlying data services.
 
-4.1. Enhance Video Card UI
-File (Example): lib/widgets/video_viewing/video_card.dart
-[ ] Add two buttons/icons:
-Like Button: (heart icon; shows filled vs. outline state).
-Save Button: (bookmark icon).
-Why: These controls give users a quick and intuitive way to mark videos they enjoy or want to revisit.
+4.1. Enhance Video Card UI ✓
+[✓] Add two buttons/icons:
+   - Like Button: (heart icon; shows filled vs. outline state)
+   - Save Button: (bookmark icon)
 
-4.2. Connect Buttons to Functionality
-[ ] On tap of the like button:
-[ ] Call the relevant Firestore service through the VideoCollectionManager to add/remove the video in the liked_videos subcollection.
-[ ] On tap of the save button:
-[ ] Call the corresponding Firestore method for the saved_videos subcollection.
-[ ] Display visual feedback (animations/snackbars) upon interaction.
-Why: Integration between the UI and backend is key to ensuring a responsive experience that reflects the user's actions immediately.
+4.2. Connect Buttons to Functionality ✓
+[✓] On tap of the like button:
+   - Call Firestore service through VideoCollectionManager
+   - Update liked_videos subcollection
+[✓] On tap of the save button:
+   - Call corresponding Firestore method for saved_videos
+   - Update user's saved_videos collection
+[✓] Display visual feedback (animations/snackbars) upon interaction
+[✓] Implement optimistic updates for immediate UI feedback
+[✓] Add error handling with user-friendly messages
+[✓] Ensure proper state management for concurrent updates
 
-4.3. Testing
-[ ] Write widget tests that simulate button taps and verify UI state.
-[ ] Use mock Firestore services to verify correct method calls.
-Why: Robust testing ensures that the interactions work across different scenarios and devices.
+4.3. Testing ✓
+[✓] Write widget tests that simulate button taps and verify UI state
+[✓] Use mock Firestore services to verify correct method calls
+
+Next Task: Step 5 - Create the Saved Videos Screen UI
 
 ---
 Step 5: Create the Saved Videos Screen UI

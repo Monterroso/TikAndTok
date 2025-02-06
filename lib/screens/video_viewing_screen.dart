@@ -31,6 +31,7 @@ class _FrontPageState extends State<FrontPage> {
   
   // Track optimistic updates
   final Map<String, bool> _optimisticLikes = {};
+  final Map<String, bool> _optimisticSaves = {};
 
   void _handleVideoChanged(Video video) {
     if (!mounted) return;
@@ -51,7 +52,7 @@ class _FrontPageState extends State<FrontPage> {
     try {
       await _firestoreService.toggleLike(
         videoId: videoId,
-        userId: _currentUserId!,
+        userId: _currentUserId,
       );
     } catch (e) {
       // Revert optimistic update on error
@@ -68,6 +69,35 @@ class _FrontPageState extends State<FrontPage> {
     }
   }
 
+  Future<void> _handleSaveChanged(bool saved) async {
+    if (_currentVideo == null || _currentUserId == null) return;
+    final videoId = _currentVideo!.id;
+
+    // Store the optimistic update
+    setState(() {
+      _optimisticSaves[videoId] = saved;
+    });
+
+    try {
+      await _firestoreService.toggleSave(
+        videoId: videoId,
+        userId: _currentUserId,
+      );
+    } catch (e) {
+      // Revert optimistic update on error
+      if (!mounted) return;
+      setState(() {
+        _optimisticSaves.remove(videoId);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to ${saved ? 'save' : 'unsave'} video: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   // Helper method to get current like status considering optimistic updates
   bool _isVideoLiked(Video video) {
     if (_currentUserId == null) return false;
@@ -78,14 +108,27 @@ class _FrontPageState extends State<FrontPage> {
     }
     
     // Otherwise use the server state
-    return video.isLikedByUser(_currentUserId!);
+    return video.isLikedByUser(_currentUserId);
+  }
+
+  // Helper method to get current save status considering optimistic updates
+  bool _isVideoSaved(Video video) {
+    if (_currentUserId == null) return false;
+    
+    // Check if we have an optimistic update
+    if (_optimisticSaves.containsKey(video.id)) {
+      return _optimisticSaves[video.id]!;
+    }
+    
+    // Otherwise use the server state
+    return video.isSavedByUser(_currentUserId);
   }
 
   // Helper method to get like count considering optimistic updates
   int _getLikeCount(Video video) {
     if (_currentUserId == null) return video.likeCount;
     
-    final serverLikeStatus = video.isLikedByUser(_currentUserId!);
+    final serverLikeStatus = video.isLikedByUser(_currentUserId);
     final optimisticLikeStatus = _optimisticLikes[video.id];
     
     // If no optimistic update, return server count
@@ -99,6 +142,26 @@ class _FrontPageState extends State<FrontPage> {
     // If the server state matches our optimistic update, clear it and use server count
     _optimisticLikes.remove(video.id);
     return video.likeCount;
+  }
+
+  // Helper method to get save count considering optimistic updates
+  int _getSaveCount(Video video) {
+    if (_currentUserId == null) return video.saveCount;
+    
+    final serverSaveStatus = video.isSavedByUser(_currentUserId);
+    final optimisticSaveStatus = _optimisticSaves[video.id];
+    
+    // If no optimistic update, return server count
+    if (optimisticSaveStatus == null) return video.saveCount;
+    
+    // If the optimistic state is different from server state, adjust the count
+    if (optimisticSaveStatus != serverSaveStatus) {
+      return video.saveCount + (optimisticSaveStatus ? 1 : -1);
+    }
+    
+    // If the server state matches our optimistic update, clear it and use server count
+    _optimisticSaves.remove(video.id);
+    return video.saveCount;
   }
 
   @override
@@ -214,10 +277,13 @@ class _FrontPageState extends State<FrontPage> {
             bottom: 100.0,
             child: RightActionsColumn(
               video: _currentVideo!,
-              currentUserId: _currentUserId!,
+              currentUserId: _currentUserId,
               onLikeChanged: _handleLikeChanged,
+              onSaveChanged: _handleSaveChanged,
               isLiked: _isVideoLiked(_currentVideo!),
+              isSaved: _isVideoSaved(_currentVideo!),
               likeCount: _getLikeCount(_currentVideo!),
+              saveCount: _getSaveCount(_currentVideo!),
             ),
           ),
           
