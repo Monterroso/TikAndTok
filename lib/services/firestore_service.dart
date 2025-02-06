@@ -15,12 +15,12 @@ import 'dart:collection';
 /// - Binary data
 /// - Image processing
 class FirestoreService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore;
   
   // Singleton pattern
-  static final FirestoreService _instance = FirestoreService._internal();
+  static final FirestoreService _instance = FirestoreService._internal(FirebaseFirestore.instance);
   factory FirestoreService() => _instance;
-  FirestoreService._internal();
+  FirestoreService._internal(this._firestore);
 
   // Collection references
   CollectionReference<Map<String, dynamic>> get _usersCollection => 
