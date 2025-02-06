@@ -33,6 +33,7 @@ class CommentList extends StatelessWidget {
         }
 
         final comments = snapshot.data!;
+
         if (comments.isEmpty) {
           return const Center(
             child: Text('No comments yet. Be the first to comment!'),
@@ -40,7 +41,10 @@ class CommentList extends StatelessWidget {
         }
 
         return ListView.builder(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.only(
+            top: 8,
+            bottom: kToolbarHeight, // Add padding for input field
+          ),
           itemCount: comments.length,
           itemBuilder: (context, index) {
             final comment = comments[index];
@@ -64,7 +68,6 @@ class CommentList extends StatelessWidget {
         commentId: comment.id,
         userId: currentUserId,
       );
-      // Show success message
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Comment deleted')),

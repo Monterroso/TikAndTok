@@ -30,7 +30,29 @@ class CommentsSheet extends StatelessWidget {
           StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
             stream: FirestoreService().streamVideoDocument(videoId),
             builder: (context, snapshot) {
-              final stats = FirestoreService().getStatsFromDoc(snapshot.data!);
+              if (snapshot.hasError) {
+                return Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Text(
+                        'Error loading comments',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              // Use initial commentCount as fallback while loading or if data is null
+              final stats = snapshot.hasData 
+                  ? FirestoreService().getStatsFromDoc(snapshot.data!)
+                  : {'comments': commentCount};
               final currentCommentCount = stats['comments'] as int? ?? 0;
 
               return Padding(

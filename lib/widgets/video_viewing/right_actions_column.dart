@@ -28,7 +28,22 @@ class RightActionsColumn extends StatelessWidget {
     return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
       stream: FirestoreService().streamVideoDocument(video.id),
       builder: (context, snapshot) {
-        final stats = FirestoreService().getStatsFromDoc(snapshot.data!);
+        if (snapshot.hasError) {
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, color: Colors.red),
+              Text('Error: ${snapshot.error}', 
+                style: const TextStyle(color: Colors.red),
+              ),
+            ],
+          );
+        }
+
+        // Use video.comments as fallback while loading or if data is null
+        final stats = snapshot.hasData 
+            ? FirestoreService().getStatsFromDoc(snapshot.data!)
+            : {'comments': video.comments};
         final commentCount = stats['comments'] as int? ?? 0;
 
         return Column(

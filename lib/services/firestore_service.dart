@@ -269,7 +269,7 @@ class FirestoreService {
     return _videosCollection
         .doc(videoId)
         .collection('comments')
-        .orderBy('timestamp', descending: false)
+        .orderBy('timestamp', descending: true)
         .snapshots()
         .map((snapshot) =>
             snapshot.docs.map((doc) => Comment.fromFirestore(doc)).toList());
