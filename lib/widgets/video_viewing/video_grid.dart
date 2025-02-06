@@ -114,14 +114,24 @@ class VideoCard extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        // TODO: Replace with ThumbnailWidget once implemented
+        // Placeholder container with gradient
         Container(
           decoration: BoxDecoration(
-            color: Colors.black,
             borderRadius: BorderRadius.circular(8),
-            image: DecorationImage(
-              image: NetworkImage(video.url),
-              fit: BoxFit.cover,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.grey[800]!,
+                Colors.grey[900]!,
+              ],
+            ),
+          ),
+          child: const Center(
+            child: Icon(
+              Icons.play_circle_outline,
+              color: Colors.white54,
+              size: 48,
             ),
           ),
         ),
