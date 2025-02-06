@@ -28,47 +28,36 @@ class _FrontPageState extends State<FrontPage> {
   Video? _currentVideo;
   final _firestoreService = FirestoreService();
   final _currentUserId = FirebaseAuth.instance.currentUser?.uid;
-  // Keep track of optimistic updates
-  final Set<String> _optimisticLikes = {};
+  
+  // Track optimistic updates
+  final Map<String, bool> _optimisticLikes = {};
 
   void _handleVideoChanged(Video video) {
     if (!mounted) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      setState(() {
-        _currentVideo = video;
-        // Clear optimistic likes when video changes
-        _optimisticLikes.clear();
-      });
+    setState(() {
+      _currentVideo = video;
     });
   }
 
   Future<void> _handleLikeChanged(bool liked) async {
     if (_currentVideo == null || _currentUserId == null) return;
+    final videoId = _currentVideo!.id;
 
-    // Optimistically update the UI
+    // Store the optimistic update
     setState(() {
-      if (liked) {
-        _optimisticLikes.add(_currentVideo!.id);
-      } else {
-        _optimisticLikes.remove(_currentVideo!.id);
-      }
+      _optimisticLikes[videoId] = liked;
     });
 
     try {
       await _firestoreService.toggleLike(
-        videoId: _currentVideo!.id,
-        userId: _currentUserId,
+        videoId: videoId,
+        userId: _currentUserId!,
       );
     } catch (e) {
       // Revert optimistic update on error
       if (!mounted) return;
       setState(() {
-        if (liked) {
-          _optimisticLikes.remove(_currentVideo!.id);
-        } else {
-          _optimisticLikes.add(_currentVideo!.id);
-        }
+        _optimisticLikes.remove(videoId);
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -83,35 +72,33 @@ class _FrontPageState extends State<FrontPage> {
   bool _isVideoLiked(Video video) {
     if (_currentUserId == null) return false;
     
-    // Get the actual server state
-    final serverLikeStatus = video.isLikedByUser(_currentUserId!);
+    // Check if we have an optimistic update
+    if (_optimisticLikes.containsKey(video.id)) {
+      return _optimisticLikes[video.id]!;
+    }
     
-    // Check if we have a pending optimistic update
-    final hasOptimisticUpdate = _optimisticLikes.contains(video.id);
-    
-    // If we have an optimistic update, toggle the server state
-    // Otherwise, use the server state as is
-    return hasOptimisticUpdate ? !serverLikeStatus : serverLikeStatus;
+    // Otherwise use the server state
+    return video.isLikedByUser(_currentUserId!);
   }
 
   // Helper method to get like count considering optimistic updates
   int _getLikeCount(Video video) {
     if (_currentUserId == null) return video.likeCount;
     
-    // Get the server states
     final serverLikeStatus = video.isLikedByUser(_currentUserId!);
-    final serverLikeCount = video.likeCount;
+    final optimisticLikeStatus = _optimisticLikes[video.id];
     
-    // Check if we have a pending optimistic update
-    final hasOptimisticUpdate = _optimisticLikes.contains(video.id);
+    // If no optimistic update, return server count
+    if (optimisticLikeStatus == null) return video.likeCount;
     
-    if (!hasOptimisticUpdate) {
-      // No optimistic update, use server count
-      return serverLikeCount;
+    // If the optimistic state is different from server state, adjust the count
+    if (optimisticLikeStatus != serverLikeStatus) {
+      return video.likeCount + (optimisticLikeStatus ? 1 : -1);
     }
     
-    // If we have an optimistic update, adjust the count based on the change
-    return serverLikeStatus ? serverLikeCount - 1 : serverLikeCount + 1;
+    // If the server state matches our optimistic update, clear it and use server count
+    _optimisticLikes.remove(video.id);
+    return video.likeCount;
   }
 
   @override
@@ -204,9 +191,11 @@ class _FrontPageState extends State<FrontPage> {
               return VideoFeed(
                 videos: validVideos,
                 onVideoChanged: _handleVideoChanged,
-                onLikeChanged: _currentVideo != null ? _handleLikeChanged : null,
-                isCurrentVideoLiked: _currentVideo != null ? _isVideoLiked(_currentVideo!) : false,
-                currentVideoLikeCount: _currentVideo != null ? _getLikeCount(_currentVideo!) : 0,
+                onLikeChanged: _handleLikeChanged,
+                isCurrentVideoLiked: _currentVideo != null ? 
+                  _isVideoLiked(_currentVideo!) : false,
+                currentVideoLikeCount: _currentVideo != null ? 
+                  _getLikeCount(_currentVideo!) : 0,
               );
             },
           ),
