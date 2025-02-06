@@ -241,17 +241,27 @@ class FirestoreService {
     }
   }
 
-  /// Stream of video likes for real-time updates
-  Stream<Set<String>> streamVideoLikes(String videoId) {
-    return _videosCollection
-        .doc(videoId)
-        .snapshots()
-        .map((doc) {
-          if (!doc.exists) return {};
-          final data = doc.data() as Map<String, dynamic>;
-          final likedByList = (data['likedBy'] as List<dynamic>?) ?? [];
-          return Set<String>.from(likedByList.map((e) => e.toString()));
-        });
+  /// Stream of video document for real-time updates
+  Stream<DocumentSnapshot<Map<String, dynamic>>> streamVideoDocument(String videoId) {
+    return _videosCollection.doc(videoId).snapshots();
+  }
+
+  /// Helper to get liked-by set from video document
+  Set<String> getLikedByFromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
+    if (!doc.exists) return {};
+    final data = doc.data() as Map<String, dynamic>;
+    final likedByList = (data['likedBy'] as List<dynamic>?) ?? [];
+    return Set<String>.from(likedByList.map((e) => e.toString()));
+  }
+
+  /// Helper to get video stats from document
+  Map<String, dynamic> getStatsFromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
+    if (!doc.exists) return {'likes': 0, 'comments': 0};
+    final data = doc.data() as Map<String, dynamic>;
+    return {
+      'likes': data['likes'] ?? 0,
+      'comments': data['comments'] ?? 0,
+    };
   }
 
   /// Streams comments for a specific video

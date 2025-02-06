@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../services/firestore_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'comment_list.dart';
 import 'comment_input.dart';
 
@@ -25,21 +27,29 @@ class CommentsSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           // Header
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Text(
-                  '$commentCount Comments',
-                  style: Theme.of(context).textTheme.titleLarge,
+          StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+            stream: FirestoreService().streamVideoDocument(videoId),
+            builder: (context, snapshot) {
+              final stats = FirestoreService().getStatsFromDoc(snapshot.data!);
+              final currentCommentCount = stats['comments'] as int? ?? 0;
+
+              return Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Text(
+                      '$currentCommentCount Comments',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
                 ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
+              );
+            },
           ),
           const Divider(height: 1),
           // Comment List

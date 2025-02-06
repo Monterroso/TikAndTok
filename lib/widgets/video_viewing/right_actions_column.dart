@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../models/video.dart';
+import '../../services/firestore_service.dart';
 import 'like_animation.dart';
 import 'comments/comments_sheet.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// RightActionsColumn groups interactive buttons such as like, comments,
 /// save, share, and music info vertically along the right edge.
@@ -23,52 +25,60 @@ class RightActionsColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // Like button with animation
-        LikeAnimation(
-          isLiked: isLiked,
-          likeCount: likeCount,
-          onTap: () => onLikeChanged(!isLiked),
-        ),
-        const SizedBox(height: 20.0),
-        // Comments button with a numerical count displayed below.
-        _ActionButton(
-          icon: Icons.comment,
-          count: video.comments,
-          onTap: () => CommentsSheet.show(
-            context: context,
-            videoId: video.id,
-            currentUserId: currentUserId,
-            commentCount: video.comments,
-          ),
-        ),
-        const SizedBox(height: 20.0),
-        // Save button.
-        IconButton(
-          icon: const Icon(Icons.bookmark, color: Colors.white),
-          onPressed: () {
-            // TODO: Implement save functionality.
-          },
-        ),
-        const SizedBox(height: 20.0),
-        // Share button.
-        IconButton(
-          icon: const Icon(Icons.share, color: Colors.white),
-          onPressed: () {
-            // TODO: Implement share functionality.
-          },
-        ),
-        const SizedBox(height: 20.0),
-        // Music info button.
-        IconButton(
-          icon: const Icon(Icons.music_note, color: Colors.white),
-          onPressed: () {
-            // TODO: Display music information.
-          },
-        ),
-      ],
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: FirestoreService().streamVideoDocument(video.id),
+      builder: (context, snapshot) {
+        final stats = FirestoreService().getStatsFromDoc(snapshot.data!);
+        final commentCount = stats['comments'] as int? ?? 0;
+
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Like button with animation
+            LikeAnimation(
+              isLiked: isLiked,
+              likeCount: likeCount,
+              onTap: () => onLikeChanged(!isLiked),
+            ),
+            const SizedBox(height: 20.0),
+            // Comments button with a numerical count displayed below.
+            _ActionButton(
+              icon: Icons.comment,
+              count: commentCount,
+              onTap: () => CommentsSheet.show(
+                context: context,
+                videoId: video.id,
+                currentUserId: currentUserId,
+                commentCount: commentCount,
+              ),
+            ),
+            const SizedBox(height: 20.0),
+            // Save button.
+            IconButton(
+              icon: const Icon(Icons.bookmark, color: Colors.white),
+              onPressed: () {
+                // TODO: Implement save functionality.
+              },
+            ),
+            const SizedBox(height: 20.0),
+            // Share button.
+            IconButton(
+              icon: const Icon(Icons.share, color: Colors.white),
+              onPressed: () {
+                // TODO: Implement share functionality.
+              },
+            ),
+            const SizedBox(height: 20.0),
+            // Music info button.
+            IconButton(
+              icon: const Icon(Icons.music_note, color: Colors.white),
+              onPressed: () {
+                // TODO: Display music information.
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }
