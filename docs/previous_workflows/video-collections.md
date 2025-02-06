@@ -7,24 +7,24 @@ Saving a video: Acts as a bookmarking function for later viewing (a "bookmark" a
 A video can be either liked, saved, both, or neither. We want to provide a clear, responsive user experience so that users can quickly interact with videos, and later review them from a dedicated page.
 
 Implementation Decisions & Clarifications:
-1. Data Structure:
+1. Data Structure: ✓
    - Store liked and saved videos as subcollections under user documents:
      - users/{userId}/liked_videos
      - users/{userId}/saved_videos
    - Add savedBy Set<String> to Video model, similar to likedBy
    - Keep category and tags within the metadata field for flexibility
 
-2. UI/UX Decisions:
-   - Add new icon to existing CustomBottomNavigationBar for collections
+2. UI/UX Decisions: (In Progress)
+   - Add new icon to CustomBottomNavigationBar for collections
    - Create separate tabs for liked and saved videos within collections view
    - Follow TikTok's placement for navigation items
-   - Reuse and refactor LikeAnimation to InteractionAnimation for both like/save:
-     - Support different icons (heart/bookmark)
-     - Configurable active colors (red for likes, gold for saves)
-     - Optional count display
-     - Maintain existing animation pattern
+   - ✓ Reuse and refactor LikeAnimation to InteractionAnimation for both like/save:
+     - ✓ Support different icons (heart/bookmark)
+     - ✓ Configurable active colors (red for likes, gold for saves)
+     - ✓ Optional count display
+     - ✓ Maintain existing animation pattern
 
-3. Implementation Approach:
+3. Implementation Approach: ✓
    - Use optimistic updates for both likes and saves
    - Implement placeholder thumbnails initially (TODO: proper thumbnail generation)
    - No batch operations for now to maintain simplicity
@@ -140,18 +140,18 @@ Why: Provider allows our UI components to listen for state changes and react in 
 Why: Ensuring the manager works as intended is vital for a reactive and stable UI.
 
 ---
-Step 3: UI Components Refactoring
+Step 3: UI Components Refactoring (In Progress)
 Objective:
 Refactor existing UI components to support both like and save interactions with consistent behavior.
 
-3.1. Refactor LikeAnimation
-[ ] Rename to InteractionAnimation
-[ ] Add parameters for icon and color
-[ ] Make count display optional
-[ ] Update existing usages in RightActionsColumn
-[ ] Test animation behavior for both like and save
+3.1. Refactor LikeAnimation ✓
+[✓] Rename to InteractionAnimation
+[✓] Add parameters for icon and color
+[✓] Make count display optional
+[✓] Update existing usages in RightActionsColumn
+[✓] Test animation behavior for both like and save
 
-3.2. Update RightActionsColumn
+3.2. Update RightActionsColumn (Next Task)
 [ ] Modify save button to use InteractionAnimation
 [ ] Add save interaction handling
 [ ] Ensure proper state management for both actions
