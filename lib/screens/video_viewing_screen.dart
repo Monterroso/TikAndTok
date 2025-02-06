@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 import '../services/firestore_service.dart';
 import '../models/video.dart';
+import '../controllers/video_collection_manager.dart';
 import '../widgets/video_viewing/video_feed.dart';
 import '../widgets/video_viewing/top_search_button.dart';
 import '../widgets/video_viewing/right_actions_column.dart';
@@ -28,140 +30,12 @@ class _FrontPageState extends State<FrontPage> {
   Video? _currentVideo;
   final _firestoreService = FirestoreService();
   final _currentUserId = FirebaseAuth.instance.currentUser?.uid;
-  
-  // Track optimistic updates
-  final Map<String, bool> _optimisticLikes = {};
-  final Map<String, bool> _optimisticSaves = {};
 
   void _handleVideoChanged(Video video) {
     if (!mounted) return;
     setState(() {
       _currentVideo = video;
     });
-  }
-
-  Future<void> _handleLikeChanged(bool liked) async {
-    if (_currentVideo == null || _currentUserId == null) return;
-    final videoId = _currentVideo!.id;
-
-    // Store the optimistic update
-    setState(() {
-      _optimisticLikes[videoId] = liked;
-    });
-
-    try {
-      await _firestoreService.toggleLike(
-        videoId: videoId,
-        userId: _currentUserId,
-      );
-    } catch (e) {
-      // Revert optimistic update on error
-      if (!mounted) return;
-      setState(() {
-        _optimisticLikes.remove(videoId);
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to ${liked ? 'like' : 'unlike'} video: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  Future<void> _handleSaveChanged(bool saved) async {
-    if (_currentVideo == null || _currentUserId == null) return;
-    final videoId = _currentVideo!.id;
-
-    // Store the optimistic update
-    setState(() {
-      _optimisticSaves[videoId] = saved;
-    });
-
-    try {
-      await _firestoreService.toggleSave(
-        videoId: videoId,
-        userId: _currentUserId,
-      );
-    } catch (e) {
-      // Revert optimistic update on error
-      if (!mounted) return;
-      setState(() {
-        _optimisticSaves.remove(videoId);
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to ${saved ? 'save' : 'unsave'} video: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  // Helper method to get current like status considering optimistic updates
-  bool _isVideoLiked(Video video) {
-    if (_currentUserId == null) return false;
-    
-    // Check if we have an optimistic update
-    if (_optimisticLikes.containsKey(video.id)) {
-      return _optimisticLikes[video.id]!;
-    }
-    
-    // Otherwise use the server state
-    return video.isLikedByUser(_currentUserId);
-  }
-
-  // Helper method to get current save status considering optimistic updates
-  bool _isVideoSaved(Video video) {
-    if (_currentUserId == null) return false;
-    
-    // Check if we have an optimistic update
-    if (_optimisticSaves.containsKey(video.id)) {
-      return _optimisticSaves[video.id]!;
-    }
-    
-    // Otherwise use the server state
-    return video.isSavedByUser(_currentUserId);
-  }
-
-  // Helper method to get like count considering optimistic updates
-  int _getLikeCount(Video video) {
-    if (_currentUserId == null) return video.likeCount;
-    
-    final serverLikeStatus = video.isLikedByUser(_currentUserId);
-    final optimisticLikeStatus = _optimisticLikes[video.id];
-    
-    // If no optimistic update, return server count
-    if (optimisticLikeStatus == null) return video.likeCount;
-    
-    // If the optimistic state is different from server state, adjust the count
-    if (optimisticLikeStatus != serverLikeStatus) {
-      return video.likeCount + (optimisticLikeStatus ? 1 : -1);
-    }
-    
-    // If the server state matches our optimistic update, clear it and use server count
-    _optimisticLikes.remove(video.id);
-    return video.likeCount;
-  }
-
-  // Helper method to get save count considering optimistic updates
-  int _getSaveCount(Video video) {
-    if (_currentUserId == null) return video.saveCount;
-    
-    final serverSaveStatus = video.isSavedByUser(_currentUserId);
-    final optimisticSaveStatus = _optimisticSaves[video.id];
-    
-    // If no optimistic update, return server count
-    if (optimisticSaveStatus == null) return video.saveCount;
-    
-    // If the optimistic state is different from server state, adjust the count
-    if (optimisticSaveStatus != serverSaveStatus) {
-      return video.saveCount + (optimisticSaveStatus ? 1 : -1);
-    }
-    
-    // If the server state matches our optimistic update, clear it and use server count
-    _optimisticSaves.remove(video.id);
-    return video.saveCount;
   }
 
   @override
@@ -177,6 +51,8 @@ class _FrontPageState extends State<FrontPage> {
         ),
       );
     }
+
+    final manager = context.watch<VideoCollectionManager>();
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -254,11 +130,14 @@ class _FrontPageState extends State<FrontPage> {
               return VideoFeed(
                 videos: validVideos,
                 onVideoChanged: _handleVideoChanged,
-                onLikeChanged: _handleLikeChanged,
+                onLikeChanged: (liked) async {
+                  if (_currentVideo != null) {
+                    await manager.toggleLikeVideo(_currentVideo!.id, _currentUserId!);
+                  }
+                },
                 isCurrentVideoLiked: _currentVideo != null ? 
-                  _isVideoLiked(_currentVideo!) : false,
-                currentVideoLikeCount: _currentVideo != null ? 
-                  _getLikeCount(_currentVideo!) : 0,
+                  manager.likedVideos.any((v) => v.id == _currentVideo!.id) : false,
+                currentVideoLikeCount: _currentVideo?.likeCount ?? 0,
               );
             },
           ),
@@ -278,12 +157,16 @@ class _FrontPageState extends State<FrontPage> {
             child: RightActionsColumn(
               video: _currentVideo!,
               currentUserId: _currentUserId,
-              onLikeChanged: _handleLikeChanged,
-              onSaveChanged: _handleSaveChanged,
-              isLiked: _isVideoLiked(_currentVideo!),
-              isSaved: _isVideoSaved(_currentVideo!),
-              likeCount: _getLikeCount(_currentVideo!),
-              saveCount: _getSaveCount(_currentVideo!),
+              onLikeChanged: (liked) async {
+                await manager.toggleLikeVideo(_currentVideo!.id, _currentUserId!);
+              },
+              onSaveChanged: (saved) async {
+                await manager.toggleSaveVideo(_currentVideo!.id, _currentUserId!);
+              },
+              isLiked: manager.likedVideos.any((v) => v.id == _currentVideo!.id),
+              isSaved: manager.savedVideos.any((v) => v.id == _currentVideo!.id),
+              likeCount: _currentVideo!.likeCount,
+              saveCount: _currentVideo!.saveCount,
             ),
           ),
           
