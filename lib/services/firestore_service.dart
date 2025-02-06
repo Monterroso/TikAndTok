@@ -444,4 +444,38 @@ class FirestoreService {
         snapshot.docs.map((doc) => Video.fromFirestore(doc)).toList()
       );
   }
+
+  /// Gets all videos liked by a user
+  Future<List<Video>> getLikedVideos(String userId) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('videos')
+          .where('likedBy', arrayContains: userId)
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      return querySnapshot.docs
+          .map((doc) => Video.fromFirestore(doc))
+          .toList();
+    } catch (e) {
+      throw 'Failed to get liked videos: $e';
+    }
+  }
+
+  /// Gets all videos saved by a user
+  Future<List<Video>> getSavedVideos(String userId) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('videos')
+          .where('savedBy', arrayContains: userId)
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      return querySnapshot.docs
+          .map((doc) => Video.fromFirestore(doc))
+          .toList();
+    } catch (e) {
+      throw 'Failed to get saved videos: $e';
+    }
+  }
 }

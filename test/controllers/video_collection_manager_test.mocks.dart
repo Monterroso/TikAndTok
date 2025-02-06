@@ -9,6 +9,8 @@ import 'package:cloud_firestore/cloud_firestore.dart' as _i4;
 import 'package:flutter_application_1/models/comment.dart' as _i7;
 import 'package:flutter_application_1/models/video.dart' as _i5;
 import 'package:flutter_application_1/services/firestore_service.dart' as _i2;
+import 'package:flutter_application_1/state/video_state.dart' as _i9;
+import 'package:flutter_application_1/state/video_state_storage.dart' as _i8;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i6;
 
@@ -300,4 +302,74 @@ class MockFirestoreService extends _i1.Mock implements _i2.FirestoreService {
             returnValue: _i3.Stream<List<_i5.Video>>.empty(),
           )
           as _i3.Stream<List<_i5.Video>>);
+
+  @override
+  _i3.Future<List<_i5.Video>> getLikedVideos(String? userId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getLikedVideos, [userId]),
+            returnValue: _i3.Future<List<_i5.Video>>.value(<_i5.Video>[]),
+          )
+          as _i3.Future<List<_i5.Video>>);
+
+  @override
+  _i3.Future<List<_i5.Video>> getSavedVideos(String? userId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getSavedVideos, [userId]),
+            returnValue: _i3.Future<List<_i5.Video>>.value(<_i5.Video>[]),
+          )
+          as _i3.Future<List<_i5.Video>>);
+}
+
+/// A class which mocks [VideoStateStorage].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockVideoStateStorage extends _i1.Mock implements _i8.VideoStateStorage {
+  MockVideoStateStorage() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i3.Future<void> saveVideoState(_i9.VideoState? state) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveVideoState, [state]),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
+  _i3.Future<_i9.VideoState?> loadVideoState(String? videoId) =>
+      (super.noSuchMethod(
+            Invocation.method(#loadVideoState, [videoId]),
+            returnValue: _i3.Future<_i9.VideoState?>.value(),
+          )
+          as _i3.Future<_i9.VideoState?>);
+
+  @override
+  _i3.Future<void> removeVideoState(String? videoId) =>
+      (super.noSuchMethod(
+            Invocation.method(#removeVideoState, [videoId]),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
+  _i3.Future<void> cleanup(Duration? threshold) =>
+      (super.noSuchMethod(
+            Invocation.method(#cleanup, [threshold]),
+            returnValue: _i3.Future<void>.value(),
+            returnValueForMissingStub: _i3.Future<void>.value(),
+          )
+          as _i3.Future<void>);
+
+  @override
+  _i3.Future<List<_i9.VideoState>> loadAllVideoStates() =>
+      (super.noSuchMethod(
+            Invocation.method(#loadAllVideoStates, []),
+            returnValue: _i3.Future<List<_i9.VideoState>>.value(
+              <_i9.VideoState>[],
+            ),
+          )
+          as _i3.Future<List<_i9.VideoState>>);
 }

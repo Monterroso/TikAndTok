@@ -1112,4 +1112,20 @@ class MockFirestoreService extends _i1.Mock implements _i7.FirestoreService {
             returnValue: _i5.Stream<List<_i9.Video>>.empty(),
           )
           as _i5.Stream<List<_i9.Video>>);
+
+  @override
+  _i5.Future<List<_i9.Video>> getLikedVideos(String? userId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getLikedVideos, [userId]),
+            returnValue: _i5.Future<List<_i9.Video>>.value(<_i9.Video>[]),
+          )
+          as _i5.Future<List<_i9.Video>>);
+
+  @override
+  _i5.Future<List<_i9.Video>> getSavedVideos(String? userId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getSavedVideos, [userId]),
+            returnValue: _i5.Future<List<_i9.Video>>.value(<_i9.Video>[]),
+          )
+          as _i5.Future<List<_i9.Video>>);
 }
