@@ -97,4 +97,12 @@ class HomeFeedController extends VideoFeedController {
     _error = null;
     notifyListeners();
   }
+
+  @override
+  Future<List<Video>> getInitialVideos() async {
+    // Reset pagination state
+    _lastDocument = null;
+    _hasMore = true;
+    return getNextPage(null, 10);
+  }
 } 

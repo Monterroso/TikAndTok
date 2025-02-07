@@ -131,6 +131,19 @@ class SavedVideosFeedController extends VideoFeedController {
   }
 
   @override
+  Future<List<Video>> getInitialVideos() async {
+    // Reset pagination state
+    _lastDocument = null;
+    _hasMore = true;
+    _currentVideo = null;
+    
+    // First fetch the latest videos from the collection
+    await fetchVideos();
+    
+    // Then get the first page
+    return getNextPage(null, 10);
+  }
+
   Future<List<Video>> fetchVideos() async {
     // First ensure the videos are loaded
     switch (collectionType) {

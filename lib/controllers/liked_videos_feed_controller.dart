@@ -119,4 +119,13 @@ class LikedVideosFeedController extends VideoFeedController {
     _error = null;
     notifyListeners();
   }
+
+  @override
+  Future<List<Video>> getInitialVideos() async {
+    // Reset pagination state
+    _lastDocument = null;
+    _hasMore = true;
+    _currentVideo = null;
+    return getNextPage(null, 10);
+  }
 } 

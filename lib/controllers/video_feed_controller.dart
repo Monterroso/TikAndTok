@@ -39,4 +39,7 @@ abstract class VideoFeedController extends ChangeNotifier {
   void clearError() {
     notifyListeners();
   }
+
+  /// Fetches the initial set of videos for the feed
+  Future<List<Video>> getInitialVideos();
 } 

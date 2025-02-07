@@ -55,14 +55,15 @@ class _VideoFeedState extends State<VideoFeed> with TickerProviderStateMixin {
 
   Future<void> _loadInitialVideos() async {
     try {
-      final videos = await widget.controller.getNextPage(null, 10);
+      final videos = await widget.controller.getInitialVideos();
       if (mounted) {
         setState(() {
           _videos.addAll(videos);
           _isInitialLoad = false;
         });
         if (_videos.isNotEmpty && widget.onVideoChanged != null) {
-          widget.onVideoChanged!(_videos[0]);
+          final initialIndex = widget.initialIndex ?? 0;
+          widget.onVideoChanged!(_videos[initialIndex]);
         }
       }
     } catch (e) {
