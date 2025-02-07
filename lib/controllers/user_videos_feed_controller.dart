@@ -7,6 +7,7 @@ import 'video_collection_manager.dart';
 class UserVideosFeedController extends VideoFeedController {
   final String userId;
   final int initialIndex;
+  final String username;
   final FirestoreService _firestoreService;
   bool _isLoading = false;
   String? _error;
@@ -16,11 +17,12 @@ class UserVideosFeedController extends VideoFeedController {
   UserVideosFeedController({
     required this.userId,
     required this.initialIndex,
+    required this.username,
     required VideoCollectionManager collectionManager,
     FirestoreService? firestoreService,
   })  : _firestoreService = firestoreService ?? FirestoreService(),
         super(
-          feedTitle: 'Videos',
+          feedTitle: '@$username\'s Videos',
           showBackButton: true,
           collectionManager: collectionManager,
         );
@@ -35,7 +37,8 @@ class UserVideosFeedController extends VideoFeedController {
 
       final videos = await _firestoreService.getUserVideos(
         userId: userId,
-        startAfter: _lastVideo,
+        startAfter: _lastVideo != null ? 
+          await _firestoreService.getVideoDocument(_lastVideo!.id) : null,
         limit: pageSize,
       );
 

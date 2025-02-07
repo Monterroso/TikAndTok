@@ -10,6 +10,7 @@ import '../widgets/video_viewing/top_search_button.dart';
 import '../widgets/video_viewing/right_actions_column.dart';
 import '../widgets/video_viewing/creator_info_group.dart';
 import '../widgets/video_viewing/custom_bottom_navigation_bar.dart';
+import '../widgets/video_viewing/feed_header.dart';
 
 /// FrontPage is the main entry point for the D&D TikTok clone's video display.
 /// It sets up a layered UI using a full-screen stack:
@@ -22,10 +23,12 @@ import '../widgets/video_viewing/custom_bottom_navigation_bar.dart';
 /// - The CustomBottomNavigationBar is fixed at the bottom with upload and profile actions.
 class VideoViewingScreen extends StatefulWidget {
   final VideoFeedController feedController;
+  final bool showBackButton;
 
   const VideoViewingScreen({
     Key? key,
     required this.feedController,
+    this.showBackButton = false,
   }) : super(key: key);
 
   @override
@@ -78,14 +81,16 @@ class _VideoViewingScreenState extends State<VideoViewingScreen> {
               manager.getLikeCount(_currentVideo!.id) : 0,
           ),
           
-          if (widget.feedController.showBackButton)
+          // Replace back button with FeedHeader
+          if (widget.showBackButton || widget.feedController.showBackButton)
             Positioned(
-              top: 16.0,
-              left: 16.0,
+              top: 0,
+              left: 0,
+              right: 0,
               child: SafeArea(
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  onPressed: () => Navigator.of(context).pop(),
+                child: FeedHeader(
+                  title: widget.feedController.feedTitle,
+                  showBackButton: true,
                 ),
               ),
             ),

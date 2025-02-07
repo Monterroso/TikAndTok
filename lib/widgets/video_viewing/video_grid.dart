@@ -14,6 +14,7 @@ class VideoGrid extends StatelessWidget {
   final void Function(Video video, int index)? onVideoTap;
   final VoidCallback? onLoadMore;
   final bool hasMore;
+  final bool useSlivers;
 
   const VideoGrid({
     Key? key,
@@ -27,57 +28,144 @@ class VideoGrid extends StatelessWidget {
     this.onVideoTap,
     this.onLoadMore,
     this.hasMore = false,
+    this.useSlivers = true,
   }) : super(key: key);
+
+  Widget _buildErrorWidget() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Icon(Icons.error_outline, color: Colors.red, size: 48),
+        const SizedBox(height: 16),
+        Text(
+          error!,
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: Colors.red),
+        ),
+        if (onRetry != null) ...[
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: onRetry,
+            child: const Text('Retry'),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildEmptyWidget() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          emptyStateIcon,
+          size: 48,
+          color: Colors.grey,
+        ),
+        const SizedBox(height: 16),
+        Text(
+          emptyStateMessage,
+          style: const TextStyle(color: Colors.grey),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGridItem(BuildContext context, int index) {
+    // Check if we need to load more videos
+    if (index >= videos.length - 3 && onLoadMore != null && hasMore && !isLoading) {
+      onLoadMore!();
+    }
+
+    // Show loading indicator at the bottom
+    if (index == videos.length) {
+      if (isLoading) {
+        return const Center(
+          child: Padding(
+            padding: EdgeInsets.all(16.0),
+            child: CircularProgressIndicator(),
+          ),
+        );
+      }
+      return const SizedBox.shrink();
+    }
+
+    if (index >= videos.length) {
+      return const SizedBox.shrink();
+    }
+
+    final video = videos[index];
+    return GestureDetector(
+      onTap: () => onVideoTap?.call(video, index),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.network(
+            video.url,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                color: Colors.grey[900],
+                child: const Icon(
+                  Icons.error_outline,
+                  color: Colors.white54,
+                ),
+              );
+            },
+          ),
+          if (actionBuilder != null)
+            Positioned(
+              right: 4,
+              top: 4,
+              child: actionBuilder!(video),
+            ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    if (error != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, color: Colors.red, size: 48),
-            const SizedBox(height: 16),
-            Text(
-              error!,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.red),
-            ),
-            if (onRetry != null) ...[
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: onRetry,
-                child: const Text('Retry'),
-              ),
-            ],
-          ],
+    if (!useSlivers) {
+      if (error != null) {
+        return Center(child: _buildErrorWidget());
+      }
+
+      if (isLoading && videos.isEmpty) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      if (videos.isEmpty) {
+        return Center(child: _buildEmptyWidget());
+      }
+
+      return GridView.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          childAspectRatio: 9 / 16,
+          crossAxisSpacing: 2,
+          mainAxisSpacing: 2,
         ),
+        itemCount: videos.length + (isLoading ? 1 : 0),
+        itemBuilder: _buildGridItem,
       );
     }
 
-    if (isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
+    if (error != null) {
+      return SliverToBoxAdapter(
+        child: Center(child: _buildErrorWidget()),
+      );
+    }
+
+    if (isLoading && videos.isEmpty) {
+      return const SliverToBoxAdapter(
+        child: Center(child: CircularProgressIndicator()),
       );
     }
 
     if (videos.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              emptyStateIcon,
-              size: 48,
-              color: Colors.grey,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              emptyStateMessage,
-              style: const TextStyle(color: Colors.grey),
-            ),
-          ],
-        ),
+      return SliverToBoxAdapter(
+        child: Center(child: _buildEmptyWidget()),
       );
     }
 
@@ -89,58 +177,7 @@ class VideoGrid extends StatelessWidget {
         mainAxisSpacing: 2,
       ),
       delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          // Check if we need to load more videos
-          if (index >= videos.length - 3 && onLoadMore != null && hasMore && !isLoading) {
-            onLoadMore!();
-          }
-
-          // Show loading indicator at the bottom
-          if (index == videos.length) {
-            if (isLoading) {
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: CircularProgressIndicator(),
-                ),
-              );
-            }
-            return null;
-          }
-
-          if (index >= videos.length) {
-            return null;
-          }
-
-          final video = videos[index];
-          return GestureDetector(
-            onTap: () => onVideoTap?.call(video, index),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                Image.network(
-                  video.url,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Colors.grey[900],
-                      child: const Icon(
-                        Icons.error_outline,
-                        color: Colors.white54,
-                      ),
-                    );
-                  },
-                ),
-                if (actionBuilder != null)
-                  Positioned(
-                    right: 4,
-                    top: 4,
-                    child: actionBuilder!(video),
-                  ),
-              ],
-            ),
-          );
-        },
+        _buildGridItem,
         childCount: videos.length + (isLoading ? 1 : 0),
       ),
     );

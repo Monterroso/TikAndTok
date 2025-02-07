@@ -183,6 +183,7 @@ class _SavedVideosScreenState extends State<SavedVideosScreen> with SingleTicker
               ),
             );
           },
+          useSlivers: false,
         );
       },
     );
