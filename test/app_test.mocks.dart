@@ -1128,4 +1128,64 @@ class MockFirestoreService extends _i1.Mock implements _i7.FirestoreService {
             returnValue: _i5.Future<List<_i9.Video>>.value(<_i9.Video>[]),
           )
           as _i5.Future<List<_i9.Video>>);
+
+  @override
+  _i5.Future<List<_i9.Video>> getVideosByIds({
+    required List<String>? videoIds,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#getVideosByIds, [], {#videoIds: videoIds}),
+            returnValue: _i5.Future<List<_i9.Video>>.value(<_i9.Video>[]),
+          )
+          as _i5.Future<List<_i9.Video>>);
+
+  @override
+  _i5.Future<List<_i9.Video>> getNextFilteredVideos({
+    required _i8.DocumentSnapshot<Object?>? lastVideo,
+    required Set<String>? filterIds,
+    int? limit = 10,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#getNextFilteredVideos, [], {
+              #lastVideo: lastVideo,
+              #filterIds: filterIds,
+              #limit: limit,
+            }),
+            returnValue: _i5.Future<List<_i9.Video>>.value(<_i9.Video>[]),
+          )
+          as _i5.Future<List<_i9.Video>>);
+
+  @override
+  _i5.Future<List<_i9.Video>> searchVideos(
+    String? query, {
+    _i9.Video? startAfter,
+    int? limit = 10,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #searchVideos,
+              [query],
+              {#startAfter: startAfter, #limit: limit},
+            ),
+            returnValue: _i5.Future<List<_i9.Video>>.value(<_i9.Video>[]),
+          )
+          as _i5.Future<List<_i9.Video>>);
+
+  @override
+  _i5.Future<List<Map<String, dynamic>>> searchUsers(
+    String? query, {
+    _i8.DocumentSnapshot<Object?>? startAfter,
+    int? limit = 10,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #searchUsers,
+              [query],
+              {#startAfter: startAfter, #limit: limit},
+            ),
+            returnValue: _i5.Future<List<Map<String, dynamic>>>.value(
+              <Map<String, dynamic>>[],
+            ),
+          )
+          as _i5.Future<List<Map<String, dynamic>>>);
 }

@@ -546,4 +546,54 @@ class FirestoreService {
       throw 'Failed to fetch filtered videos: $e';
     }
   }
+
+  /// Searches for videos by title
+  Future<List<Video>> searchVideos(String query, {Video? startAfter, int limit = 10}) async {
+    try {
+      Query<Map<String, dynamic>> searchQuery = _videosCollection
+          .orderBy('title')
+          .where('title', isGreaterThanOrEqualTo: query)
+          .where('title', isLessThan: query + '\uf8ff')
+          .limit(limit);
+
+      if (startAfter != null) {
+        final startAfterDoc = await _videosCollection.doc(startAfter.id).get();
+        searchQuery = searchQuery.startAfterDocument(startAfterDoc);
+      }
+
+      final querySnapshot = await searchQuery.get();
+      return querySnapshot.docs
+          .map((doc) => Video.fromFirestore(doc))
+          .toList();
+    } catch (e) {
+      debugPrint('Error searching videos: $e');
+      throw 'Failed to search videos: $e';
+    }
+  }
+
+  /// Searches for users by displayName
+  Future<List<Map<String, dynamic>>> searchUsers(String query, {DocumentSnapshot? startAfter, int limit = 10}) async {
+    try {
+      Query<Map<String, dynamic>> searchQuery = _usersCollection
+          .orderBy('displayName')
+          .where('displayName', isGreaterThanOrEqualTo: query)
+          .where('displayName', isLessThan: query + '\uf8ff')
+          .limit(limit);
+
+      if (startAfter != null) {
+        searchQuery = searchQuery.startAfterDocument(startAfter);
+      }
+
+      final querySnapshot = await searchQuery.get();
+      return querySnapshot.docs
+          .map((doc) => {
+                'id': doc.id,
+                ...doc.data(),
+              })
+          .toList();
+    } catch (e) {
+      debugPrint('Error searching users: $e');
+      throw 'Failed to search users: $e';
+    }
+  }
 }

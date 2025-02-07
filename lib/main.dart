@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide SearchController;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +8,8 @@ import 'screens/login_screen.dart';
 import 'screens/video_viewing_screen.dart';
 import 'controllers/video_collection_manager.dart';
 import 'controllers/liked_videos_feed_controller.dart';
+import 'controllers/search_controller.dart';
+import 'services/firestore_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,15 +32,15 @@ class MyApp extends StatelessWidget {
           initialData: FirebaseAuth.instance.currentUser,
         ),
       ],
-      child: FutureBuilder<VideoCollectionManager>(
+      child: FutureBuilder<(VideoCollectionManager, SharedPreferences)>(
         future: () async {
           try {
-            await SharedPreferences.getInstance();
+            final prefs = await SharedPreferences.getInstance();
             final manager = await VideoCollectionManager.create();
             await manager.initialize();
-            return manager;
+            return (manager, prefs);
           } catch (e) {
-            debugPrint('Error initializing VideoCollectionManager: $e');
+            debugPrint('Error initializing app: $e');
             rethrow;
           }
         }(),
@@ -84,15 +86,23 @@ class MyApp extends StatelessWidget {
             );
           }
 
+          final (manager, prefs) = snapshot.data!;
+
           return MultiProvider(
             providers: [
               ChangeNotifierProvider.value(
-                value: snapshot.data!,
+                value: manager,
               ),
               ProxyProvider<VideoCollectionManager, LikedVideosFeedController>(
                 update: (context, manager, _) => LikedVideosFeedController(
                   userId: FirebaseAuth.instance.currentUser?.uid ?? '',
                   collectionManager: manager,
+                ),
+              ),
+              ChangeNotifierProvider<SearchController>(
+                create: (_) => SearchController(
+                  firestoreService: FirestoreService(),
+                  prefs: prefs,
                 ),
               ),
             ],

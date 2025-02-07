@@ -270,6 +270,14 @@ class MockVideoCollectionManager extends _i1.Mock
   );
 
   @override
+  Set<String> getLikedVideoIds(String? userId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getLikedVideoIds, [userId]),
+            returnValue: <String>{},
+          )
+          as Set<String>);
+
+  @override
   int getLikeCount(String? videoId) =>
       (super.noSuchMethod(
             Invocation.method(#getLikeCount, [videoId]),
@@ -284,6 +292,30 @@ class MockVideoCollectionManager extends _i1.Mock
             returnValue: 0,
           )
           as int);
+
+  @override
+  Set<String> getSavedVideoIds(String? userId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getSavedVideoIds, [userId]),
+            returnValue: <String>{},
+          )
+          as Set<String>);
+
+  @override
+  bool isVideoLiked(String? videoId) =>
+      (super.noSuchMethod(
+            Invocation.method(#isVideoLiked, [videoId]),
+            returnValue: false,
+          )
+          as bool);
+
+  @override
+  bool isVideoSaved(String? videoId) =>
+      (super.noSuchMethod(
+            Invocation.method(#isVideoSaved, [videoId]),
+            returnValue: false,
+          )
+          as bool);
 
   @override
   void addListener(_i7.VoidCallback? listener) => super.noSuchMethod(

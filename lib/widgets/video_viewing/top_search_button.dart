@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../screens/search_screen.dart';
 
 /// TopSearchButton represents the search functionality located at the top-right.
 class TopSearchButton extends StatelessWidget {
@@ -9,7 +10,11 @@ class TopSearchButton extends StatelessWidget {
     return IconButton(
       icon: const Icon(Icons.search, color: Colors.white),
       onPressed: () {
-        // TODO: Implement search functionality.
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => const SearchScreen(),
+          ),
+        );
       },
     );
   }

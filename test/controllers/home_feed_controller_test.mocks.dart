@@ -320,6 +320,66 @@ class MockFirestoreService extends _i1.Mock implements _i2.FirestoreService {
             returnValue: _i3.Future<List<_i5.Video>>.value(<_i5.Video>[]),
           )
           as _i3.Future<List<_i5.Video>>);
+
+  @override
+  _i3.Future<List<_i5.Video>> getVideosByIds({
+    required List<String>? videoIds,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#getVideosByIds, [], {#videoIds: videoIds}),
+            returnValue: _i3.Future<List<_i5.Video>>.value(<_i5.Video>[]),
+          )
+          as _i3.Future<List<_i5.Video>>);
+
+  @override
+  _i3.Future<List<_i5.Video>> getNextFilteredVideos({
+    required _i4.DocumentSnapshot<Object?>? lastVideo,
+    required Set<String>? filterIds,
+    int? limit = 10,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#getNextFilteredVideos, [], {
+              #lastVideo: lastVideo,
+              #filterIds: filterIds,
+              #limit: limit,
+            }),
+            returnValue: _i3.Future<List<_i5.Video>>.value(<_i5.Video>[]),
+          )
+          as _i3.Future<List<_i5.Video>>);
+
+  @override
+  _i3.Future<List<_i5.Video>> searchVideos(
+    String? query, {
+    _i5.Video? startAfter,
+    int? limit = 10,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #searchVideos,
+              [query],
+              {#startAfter: startAfter, #limit: limit},
+            ),
+            returnValue: _i3.Future<List<_i5.Video>>.value(<_i5.Video>[]),
+          )
+          as _i3.Future<List<_i5.Video>>);
+
+  @override
+  _i3.Future<List<Map<String, dynamic>>> searchUsers(
+    String? query, {
+    _i4.DocumentSnapshot<Object?>? startAfter,
+    int? limit = 10,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #searchUsers,
+              [query],
+              {#startAfter: startAfter, #limit: limit},
+            ),
+            returnValue: _i3.Future<List<Map<String, dynamic>>>.value(
+              <Map<String, dynamic>>[],
+            ),
+          )
+          as _i3.Future<List<Map<String, dynamic>>>);
 }
 
 /// A class which mocks [VideoCollectionManager].
@@ -447,6 +507,14 @@ class MockVideoCollectionManager extends _i1.Mock
   );
 
   @override
+  Set<String> getLikedVideoIds(String? userId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getLikedVideoIds, [userId]),
+            returnValue: <String>{},
+          )
+          as Set<String>);
+
+  @override
   int getLikeCount(String? videoId) =>
       (super.noSuchMethod(
             Invocation.method(#getLikeCount, [videoId]),
@@ -461,6 +529,30 @@ class MockVideoCollectionManager extends _i1.Mock
             returnValue: 0,
           )
           as int);
+
+  @override
+  Set<String> getSavedVideoIds(String? userId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getSavedVideoIds, [userId]),
+            returnValue: <String>{},
+          )
+          as Set<String>);
+
+  @override
+  bool isVideoLiked(String? videoId) =>
+      (super.noSuchMethod(
+            Invocation.method(#isVideoLiked, [videoId]),
+            returnValue: false,
+          )
+          as bool);
+
+  @override
+  bool isVideoSaved(String? videoId) =>
+      (super.noSuchMethod(
+            Invocation.method(#isVideoSaved, [videoId]),
+            returnValue: false,
+          )
+          as bool);
 
   @override
   void addListener(_i10.VoidCallback? listener) => super.noSuchMethod(

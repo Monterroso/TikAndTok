@@ -1,34 +1,30 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:flutter/foundation.dart';
+
+part 'video.freezed.dart';
+part 'video.g.dart';
 
 /// Represents a video in the application.
 /// This model handles video metadata and provides conversion to/from Firestore.
-class Video {
-  final String id;
-  final String url;
-  final String userId;
-  final String title;
-  final String description;
-  final int likes;
-  final int comments;
-  final DateTime createdAt;
-  final Map<String, dynamic>? metadata;
-  final Set<String> likedBy;
-  final Set<String> savedBy;
+@freezed
+class Video with _$Video {
+  const Video._(); // Custom constructor for methods
 
-  const Video({
-    required this.id,
-    required this.url,
-    required this.userId,
-    required this.title,
-    required this.description,
-    this.likes = 0,
-    this.comments = 0,
-    required this.createdAt,
-    this.metadata,
-    this.likedBy = const {},
-    this.savedBy = const {},
-  });
+  const factory Video({
+    required String id,
+    required String url,
+    required String userId,
+    required String title,
+    required String description,
+    @Default(0) int likes,
+    @Default(0) int comments,
+    required DateTime createdAt,
+    Map<String, dynamic>? metadata,
+    @Default({}) Set<String> likedBy,
+    @Default({}) Set<String> savedBy,
+  }) = _Video;
 
   /// Creates a Video instance from a Firestore document
   factory Video.fromFirestore(DocumentSnapshot doc) {
@@ -86,19 +82,17 @@ class Video {
   }
 
   /// Converts the Video instance to a Map for Firestore
-  Map<String, dynamic> toFirestore() {
-    return {
-      'url': url,
-      'userId': userId,
-      'title': title,
-      'description': description,
-      'likedBy': likedBy.toList(), // Convert Set to List for Firestore
-      'savedBy': savedBy.toList(), // Convert Set to List for Firestore
-      'comments': comments,
-      'createdAt': Timestamp.fromDate(createdAt),
-      if (metadata != null) 'metadata': metadata,
-    };
-  }
+  Map<String, dynamic> toFirestore() => {
+    'url': url,
+    'userId': userId,
+    'title': title,
+    'description': description,
+    'likedBy': likedBy.toList(), // Convert Set to List for Firestore
+    'savedBy': savedBy.toList(), // Convert Set to List for Firestore
+    'comments': comments,
+    'createdAt': Timestamp.fromDate(createdAt),
+    if (metadata != null) 'metadata': metadata,
+  };
 
   /// Check if the video URL is still valid
   Future<bool> isUrlValid() async {
@@ -123,32 +117,5 @@ class Video {
   /// Get the total number of saves (computed from savedBy set)
   int get saveCount => savedBy.length;
 
-  /// Create a copy of this Video with modified fields
-  Video copyWith({
-    String? id,
-    String? url,
-    String? userId,
-    String? title,
-    String? description,
-    int? likes,
-    int? comments,
-    DateTime? createdAt,
-    Map<String, dynamic>? metadata,
-    Set<String>? likedBy,
-    Set<String>? savedBy,
-  }) {
-    return Video(
-      id: id ?? this.id,
-      url: url ?? this.url,
-      userId: userId ?? this.userId,
-      title: title ?? this.title,
-      description: description ?? this.description,
-      likes: likes ?? this.likes,
-      comments: comments ?? this.comments,
-      createdAt: createdAt ?? this.createdAt,
-      metadata: metadata ?? this.metadata,
-      likedBy: likedBy ?? this.likedBy,
-      savedBy: savedBy ?? this.savedBy,
-    );
-  }
+  factory Video.fromJson(Map<String, dynamic> json) => _$VideoFromJson(json);
 }
