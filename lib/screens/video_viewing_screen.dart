@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../services/firestore_service.dart';
 import '../models/video.dart';
 import '../controllers/video_collection_manager.dart';
-import '../controllers/home_feed_controller.dart';
+import '../controllers/video_feed_controller.dart';
 import '../widgets/video_viewing/video_feed.dart';
 import '../widgets/video_viewing/top_search_button.dart';
 import '../widgets/video_viewing/right_actions_column.dart';
@@ -20,26 +20,21 @@ import '../widgets/video_viewing/custom_bottom_navigation_bar.dart';
 /// - The CreatorInfoGroup shows the creator's profile picture, follow button, username,
 ///   and video title at the bottom-left.
 /// - The CustomBottomNavigationBar is fixed at the bottom with upload and profile actions.
-class FrontPage extends StatefulWidget {
-  const FrontPage({Key? key}) : super(key: key);
+class VideoViewingScreen extends StatefulWidget {
+  final VideoFeedController feedController;
+
+  const VideoViewingScreen({
+    Key? key,
+    required this.feedController,
+  }) : super(key: key);
 
   @override
-  State<FrontPage> createState() => _FrontPageState();
+  State<VideoViewingScreen> createState() => _VideoViewingScreenState();
 }
 
-class _FrontPageState extends State<FrontPage> {
+class _VideoViewingScreenState extends State<VideoViewingScreen> {
   Video? _currentVideo;
-  HomeFeedController? _homeFeedController;
   final _currentUserId = FirebaseAuth.instance.currentUser?.uid;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_homeFeedController == null) {
-      final manager = context.read<VideoCollectionManager>();
-      _homeFeedController = HomeFeedController(collectionManager: manager);
-    }
-  }
 
   void _handleVideoChanged(Video video) {
     if (!mounted) return;
@@ -68,8 +63,8 @@ class _FrontPageState extends State<FrontPage> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          if (_homeFeedController != null) VideoFeed(
-            controller: _homeFeedController!,
+          VideoFeed(
+            controller: widget.feedController,
             onVideoChanged: _handleVideoChanged,
             onLikeChanged: (liked) {
               if (_currentVideo != null) {
@@ -83,11 +78,25 @@ class _FrontPageState extends State<FrontPage> {
               manager.getLikeCount(_currentVideo!.id) : 0,
           ),
           
-          // TopSearchButton positioned at the top-right with padding
+          if (widget.feedController.showBackButton)
+            Positioned(
+              top: 16.0,
+              left: 16.0,
+              child: SafeArea(
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ),
+            ),
+          
+          // Add search button in the top-right corner
           const Positioned(
             top: 16.0,
             right: 16.0,
-            child: TopSearchButton(),
+            child: SafeArea(
+              child: TopSearchButton(),
+            ),
           ),
           
           // RightActionsColumn holds the interactive buttons

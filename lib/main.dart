@@ -8,6 +8,7 @@ import 'screens/login_screen.dart';
 import 'screens/video_viewing_screen.dart';
 import 'controllers/video_collection_manager.dart';
 import 'controllers/liked_videos_feed_controller.dart';
+import 'controllers/home_feed_controller.dart';
 import 'controllers/search_controller.dart';
 import 'services/firestore_service.dart';
 
@@ -127,6 +128,12 @@ class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final User? user = Provider.of<User?>(context);
-    return user == null ? const LoginScreen() : const FrontPage();
+    if (user == null) {
+      return const LoginScreen();
+    }
+
+    final manager = context.read<VideoCollectionManager>();
+    final homeFeedController = HomeFeedController(collectionManager: manager);
+    return VideoViewingScreen(feedController: homeFeedController);
   }
 }

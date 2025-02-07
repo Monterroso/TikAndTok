@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart' hide SearchController;
 import 'package:provider/provider.dart';
 import '../controllers/search_controller.dart';
+import '../controllers/search_video_feed_controller.dart';
+import '../controllers/video_collection_manager.dart';
 import '../models/search.dart';
 import '../models/video.dart';
 import '../widgets/video_viewing/video_grid.dart';
+import 'video_viewing_screen.dart';
 
 class SearchScreen extends StatelessWidget {
   const SearchScreen({super.key});
@@ -11,35 +14,35 @@ class SearchScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            _SearchBar(),
-            Expanded(
-              child: Consumer<SearchController>(
-                builder: (context, controller, _) {
-                  final state = controller.state;
-                  
-                  if (state.query.isEmpty) {
-                    return _RecentSearches();
-                  }
-
-                  if (state.isLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  if (state.error != null) {
-                    return Center(
-                      child: Text('Error: ${state.error}'),
-                    );
-                  }
-
-                  return _SearchResults(state: state);
-                },
-              ),
-            ),
-          ],
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
         ),
+        title: _SearchBar(),
+      ),
+      body: Consumer<SearchController>(
+        builder: (context, controller, _) {
+          final state = controller.state;
+          
+          if (state.query.isEmpty) {
+            return _RecentSearches();
+          }
+
+          if (state.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (state.error != null) {
+            return Center(
+              child: Text('Error: ${state.error}'),
+            );
+          }
+
+          return _SearchResults(state: state);
+        },
       ),
     );
   }
@@ -130,6 +133,26 @@ class _SearchResults extends StatelessWidget {
 
   const _SearchResults({required this.state});
 
+  void _navigateToVideo(BuildContext context, Video video, int index) {
+    final manager = context.read<VideoCollectionManager>();
+    final controller = SearchVideoFeedController(
+      searchResults: state.videoResults,
+      initialIndex: index,
+      collectionManager: manager,
+    );
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => VideoViewingScreen(feedController: controller),
+      ),
+    );
+  }
+
+  void _navigateToUserProfile(BuildContext context, Map<String, dynamic> user) {
+    // TODO: Implement user profile navigation
+    debugPrint('Navigate to user profile: ${user['id']}');
+  }
+
   @override
   Widget build(BuildContext context) {
     return CustomScrollView(
@@ -155,7 +178,10 @@ class _SearchResults extends StatelessWidget {
                 itemCount: state.userResults.length,
                 itemBuilder: (context, index) {
                   final user = state.userResults[index];
-                  return _UserCard(user: user);
+                  return GestureDetector(
+                    onTap: () => _navigateToUserProfile(context, user),
+                    child: _UserCard(user: user),
+                  );
                 },
               ),
             ),
@@ -178,9 +204,7 @@ class _SearchResults extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             sliver: VideoGrid(
               videos: state.videoResults,
-              onVideoTap: (video, _) {
-                // TODO: Navigate to video viewing screen
-              },
+              onVideoTap: (video, index) => _navigateToVideo(context, video, index),
             ),
           ),
         ],

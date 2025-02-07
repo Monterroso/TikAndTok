@@ -1,0 +1,26 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Keep existing permissive rules during development
+    match /{document=**} {
+      allow read, write: if true;  // Maintaining test mode for now
+    }
+
+    // Adding structure for future lockdown (commented out for now)
+    // Once ready to secure the app, uncomment these and remove the permissive rule above
+    /*
+    match /videos/{videoId} {
+      allow read: if true;
+      
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if request.auth != null && 
+                     request.resource.data.userId == request.auth.uid;
+        allow update, delete: if request.auth != null && 
+                             resource.data.userId == request.auth.uid;
+      }
+    }
+    */
+  }
+}
