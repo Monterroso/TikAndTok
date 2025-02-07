@@ -7,6 +7,7 @@ import '../models/search.dart';
 import '../models/video.dart';
 import '../widgets/video_viewing/video_grid.dart';
 import 'video_viewing_screen.dart';
+import 'user_profile_screen.dart';
 
 class SearchScreen extends StatelessWidget {
   const SearchScreen({super.key});
@@ -168,8 +169,13 @@ class _SearchResults extends StatelessWidget {
   }
 
   void _navigateToUserProfile(BuildContext context, Map<String, dynamic> user) {
-    // TODO: Implement user profile navigation
-    debugPrint('Navigate to user profile: ${user['id']}');
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => UserProfileScreen(
+          userId: user['id'],
+        ),
+      ),
+    );
   }
 
   @override

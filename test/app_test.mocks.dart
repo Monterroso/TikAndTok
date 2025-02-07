@@ -1194,4 +1194,49 @@ class MockFirestoreService extends _i1.Mock implements _i7.FirestoreService {
             ),
           )
           as _i5.Future<List<Map<String, dynamic>>>);
+
+  @override
+  _i5.Future<List<_i9.Video>> getUserVideos({
+    required String? userId,
+    _i9.Video? startAfter,
+    int? limit = 12,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#getUserVideos, [], {
+              #userId: userId,
+              #startAfter: startAfter,
+              #limit: limit,
+            }),
+            returnValue: _i5.Future<List<_i9.Video>>.value(<_i9.Video>[]),
+          )
+          as _i5.Future<List<_i9.Video>>);
+
+  @override
+  _i5.Future<bool> isFollowing({
+    required String? followerId,
+    required String? followedId,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#isFollowing, [], {
+              #followerId: followerId,
+              #followedId: followedId,
+            }),
+            returnValue: _i5.Future<bool>.value(false),
+          )
+          as _i5.Future<bool>);
+
+  @override
+  _i5.Future<void> toggleFollow({
+    required String? followerId,
+    required String? followedId,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#toggleFollow, [], {
+              #followerId: followerId,
+              #followedId: followedId,
+            }),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
 }

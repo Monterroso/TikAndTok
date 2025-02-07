@@ -646,4 +646,104 @@ class FirestoreService {
       throw 'Failed to search users: $e';
     }
   }
+
+  /// Gets all videos by a specific user
+  Future<List<Video>> getUserVideos({
+    required String userId,
+    Video? startAfter,
+    int limit = 12,
+  }) async {
+    try {
+      Query<Map<String, dynamic>> query = _videosCollection
+          .where('userId', isEqualTo: userId)
+          .orderBy('createdAt', descending: true)
+          .limit(limit);
+
+      if (startAfter != null) {
+        final startAfterDoc = await _videosCollection.doc(startAfter.id).get();
+        query = query.startAfterDocument(startAfterDoc);
+      }
+
+      final querySnapshot = await query.get();
+      return querySnapshot.docs
+          .map((doc) => Video.fromFirestore(doc))
+          .toList();
+    } catch (e) {
+      debugPrint('Error getting user videos: $e');
+      throw 'Failed to get user videos: $e';
+    }
+  }
+
+  /// Checks if a user is following another user
+  Future<bool> isFollowing({
+    required String followerId,
+    required String followedId,
+  }) async {
+    try {
+      final doc = await _usersCollection
+          .doc(followedId)
+          .collection('followers')
+          .doc(followerId)
+          .get();
+      return doc.exists;
+    } catch (e) {
+      debugPrint('Error checking follow status: $e');
+      return false;
+    }
+  }
+
+  /// Toggles follow status between two users
+  Future<void> toggleFollow({
+    required String followerId,
+    required String followedId,
+  }) async {
+    if (followerId.isEmpty || followedId.isEmpty) {
+      throw 'Invalid user IDs';
+    }
+
+    if (followerId == followedId) {
+      throw 'Users cannot follow themselves';
+    }
+
+    try {
+      // Run in a transaction to ensure consistency
+      await _firestore.runTransaction((transaction) async {
+        final followedRef = _usersCollection.doc(followedId);
+        final followerRef = _usersCollection.doc(followerId);
+        final followerDoc = followedRef.collection('followers').doc(followerId);
+        final followingDoc = followerRef.collection('following').doc(followedId);
+
+        final isCurrentlyFollowing = (await transaction.get(followerDoc)).exists;
+
+        if (isCurrentlyFollowing) {
+          // Unfollow
+          transaction.delete(followerDoc);
+          transaction.delete(followingDoc);
+          transaction.update(followedRef, {
+            'followerCount': FieldValue.increment(-1),
+          });
+          transaction.update(followerRef, {
+            'followingCount': FieldValue.increment(-1),
+          });
+        } else {
+          // Follow
+          final followData = {
+            'userId': followerId,
+            'timestamp': FieldValue.serverTimestamp(),
+          };
+          transaction.set(followerDoc, followData);
+          transaction.set(followingDoc, followData);
+          transaction.update(followedRef, {
+            'followerCount': FieldValue.increment(1),
+          });
+          transaction.update(followerRef, {
+            'followingCount': FieldValue.increment(1),
+          });
+        }
+      });
+    } catch (e) {
+      debugPrint('Error toggling follow: $e');
+      throw 'Failed to update follow status: $e';
+    }
+  }
 }
