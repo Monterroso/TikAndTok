@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../services/firestore_service.dart';
 import '../models/video.dart';
 import '../controllers/video_collection_manager.dart';
+import '../controllers/home_feed_controller.dart';
 import '../widgets/video_viewing/video_feed.dart';
 import '../widgets/video_viewing/top_search_button.dart';
 import '../widgets/video_viewing/right_actions_column.dart';
@@ -28,8 +29,17 @@ class FrontPage extends StatefulWidget {
 
 class _FrontPageState extends State<FrontPage> {
   Video? _currentVideo;
-  final _firestoreService = FirestoreService();
+  HomeFeedController? _homeFeedController;
   final _currentUserId = FirebaseAuth.instance.currentUser?.uid;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_homeFeedController == null) {
+      final manager = context.read<VideoCollectionManager>();
+      _homeFeedController = HomeFeedController(collectionManager: manager);
+    }
+  }
 
   void _handleVideoChanged(Video video) {
     if (!mounted) return;
@@ -58,90 +68,19 @@ class _FrontPageState extends State<FrontPage> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Debug information or VideoFeed
-          StreamBuilder<List<Video>>(
-            stream: _firestoreService.streamVideos(),
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      'Debug: Firebase Error\n'
-                      '${snapshot.error is FormatException ? "Invalid video data: " : ""}'
-                      '${snapshot.error}',
-                      style: const TextStyle(color: Colors.white54),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                );
+          if (_homeFeedController != null) VideoFeed(
+            controller: _homeFeedController!,
+            onVideoChanged: _handleVideoChanged,
+            onLikeChanged: (liked) {
+              if (_currentVideo != null) {
+                // Fire and forget - don't await
+                manager.toggleLikeVideo(_currentVideo!.id, _currentUserId!);
               }
-
-              if (!snapshot.hasData) {
-                return const Center(
-                  child: Text(
-                    'Debug: Waiting for Firebase data...',
-                    style: TextStyle(color: Colors.white54),
-                  ),
-                );
-              }
-
-              final videos = snapshot.data ?? [];
-              if (videos.isEmpty) {
-                return const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Text(
-                      'Debug: No videos in Firebase\n'
-                      'Collection: videos\n'
-                      'Required fields:\n'
-                      '- url (string, valid URL)\n'
-                      '- userId (string)\n'
-                      '- title (string)\n'
-                      '- createdAt (timestamp)',
-                      style: TextStyle(color: Colors.white54),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                );
-              }
-
-              // Filter out videos with invalid URLs
-              final validVideos = videos.where((video) => 
-                video.url.startsWith('http://') || 
-                video.url.startsWith('https://')
-              ).toList();
-
-              if (validVideos.isEmpty) {
-                return const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: Text(
-                      'Debug: No valid video URLs found\n'
-                      'Videos exist but URLs are invalid\n'
-                      'URLs must start with http:// or https://',
-                      style: TextStyle(color: Colors.white54),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                );
-              }
-
-              return VideoFeed(
-                videos: validVideos,
-                onVideoChanged: _handleVideoChanged,
-                onLikeChanged: (liked) {
-                  if (_currentVideo != null) {
-                    // Fire and forget - don't await
-                    manager.toggleLikeVideo(_currentVideo!.id, _currentUserId!);
-                  }
-                },
-                isCurrentVideoLiked: _currentVideo != null ? 
-                  (manager.getCachedVideoState(_currentVideo!.id)?.isLiked ?? false) : false,
-                currentVideoLikeCount: _currentVideo != null ? 
-                  manager.getLikeCount(_currentVideo!.id) : 0,
-              );
             },
+            isCurrentVideoLiked: _currentVideo != null ? 
+              (manager.getCachedVideoState(_currentVideo!.id)?.isLiked ?? false) : false,
+            currentVideoLikeCount: _currentVideo != null ? 
+              manager.getLikeCount(_currentVideo!.id) : 0,
           ),
           
           // TopSearchButton positioned at the top-right with padding

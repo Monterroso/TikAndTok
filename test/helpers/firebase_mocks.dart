@@ -6,7 +6,7 @@ import 'package:mockito/mockito.dart';
 
 typedef Callback = void Function(MethodCall call);
 
-class MockFirebasePlatform extends Mock implements FirebasePlatform {
+class MockFirebasePlatform extends Mock with MockPlatformInterfaceMixin implements FirebasePlatform {
   @override
   FirebaseAppPlatform app([String name = defaultFirebaseAppName]) {
     return MockFirebaseAppPlatform();
@@ -39,5 +39,5 @@ void setupFirebaseCoreMocks([Callback? customHandlers]) {
 
   // Create and set mock platform
   final platform = MockFirebasePlatform();
-  Firebase.delegatePackingProperty = platform;
+  FirebasePlatform.instance = platform;
 } 

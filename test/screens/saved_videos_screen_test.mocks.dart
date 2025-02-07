@@ -12,8 +12,8 @@ import 'package:firebase_auth_platform_interface/firebase_auth_platform_interfac
 import 'package:firebase_core/firebase_core.dart' as _i2;
 import 'package:flutter_application_1/controllers/video_collection_manager.dart'
     as _i7;
-import 'package:flutter_application_1/models/video.dart' as _i9;
-import 'package:flutter_application_1/state/video_state.dart' as _i8;
+import 'package:flutter_application_1/models/video.dart' as _i8;
+import 'package:flutter_application_1/state/video_state.dart' as _i9;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i6;
 
@@ -854,6 +854,38 @@ class MockVideoCollectionManager extends _i1.Mock
           as bool);
 
   @override
+  bool get isLoadingLiked =>
+      (super.noSuchMethod(
+            Invocation.getter(#isLoadingLiked),
+            returnValue: false,
+          )
+          as bool);
+
+  @override
+  bool get isLoadingSaved =>
+      (super.noSuchMethod(
+            Invocation.getter(#isLoadingSaved),
+            returnValue: false,
+          )
+          as bool);
+
+  @override
+  List<_i8.Video> get likedVideos =>
+      (super.noSuchMethod(
+            Invocation.getter(#likedVideos),
+            returnValue: <_i8.Video>[],
+          )
+          as List<_i8.Video>);
+
+  @override
+  List<_i8.Video> get savedVideos =>
+      (super.noSuchMethod(
+            Invocation.getter(#savedVideos),
+            returnValue: <_i8.Video>[],
+          )
+          as List<_i8.Video>);
+
+  @override
   bool get hasListeners =>
       (super.noSuchMethod(Invocation.getter(#hasListeners), returnValue: false)
           as bool);
@@ -868,12 +900,17 @@ class MockVideoCollectionManager extends _i1.Mock
           as _i5.Future<void>);
 
   @override
-  _i5.Future<_i8.VideoState?> getVideoState(String? videoId) =>
+  _i9.VideoState? getCachedVideoState(String? videoId) =>
+      (super.noSuchMethod(Invocation.method(#getCachedVideoState, [videoId]))
+          as _i9.VideoState?);
+
+  @override
+  _i5.Future<_i9.VideoState?> getVideoState(String? videoId) =>
       (super.noSuchMethod(
             Invocation.method(#getVideoState, [videoId]),
-            returnValue: _i5.Future<_i8.VideoState?>.value(),
+            returnValue: _i5.Future<_i9.VideoState?>.value(),
           )
-          as _i5.Future<_i8.VideoState?>);
+          as _i5.Future<_i9.VideoState?>);
 
   @override
   _i5.Future<void> toggleLikeVideo(String? videoId, String? userId) =>
@@ -894,20 +931,22 @@ class MockVideoCollectionManager extends _i1.Mock
           as _i5.Future<void>);
 
   @override
-  _i5.Future<List<_i9.Video>> getLikedVideos(String? userId) =>
+  _i5.Future<void> fetchLikedVideos(String? userId) =>
       (super.noSuchMethod(
-            Invocation.method(#getLikedVideos, [userId]),
-            returnValue: _i5.Future<List<_i9.Video>>.value(<_i9.Video>[]),
+            Invocation.method(#fetchLikedVideos, [userId]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i5.Future<List<_i9.Video>>);
+          as _i5.Future<void>);
 
   @override
-  _i5.Future<List<_i9.Video>> getSavedVideos(String? userId) =>
+  _i5.Future<void> fetchSavedVideos(String? userId) =>
       (super.noSuchMethod(
-            Invocation.method(#getSavedVideos, [userId]),
-            returnValue: _i5.Future<List<_i9.Video>>.value(<_i9.Video>[]),
+            Invocation.method(#fetchSavedVideos, [userId]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i5.Future<List<_i9.Video>>);
+          as _i5.Future<void>);
 
   @override
   _i5.Future<void> cleanup() =>
@@ -923,6 +962,22 @@ class MockVideoCollectionManager extends _i1.Mock
     Invocation.method(#clearError, []),
     returnValueForMissingStub: null,
   );
+
+  @override
+  int getLikeCount(String? videoId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getLikeCount, [videoId]),
+            returnValue: 0,
+          )
+          as int);
+
+  @override
+  int getSaveCount(String? videoId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getSaveCount, [videoId]),
+            returnValue: 0,
+          )
+          as int);
 
   @override
   void addListener(_i10.VoidCallback? listener) => super.noSuchMethod(
