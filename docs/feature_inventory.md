@@ -142,6 +142,17 @@ This document tracks all implemented and planned features for the application. I
     - Proper routing to SavedVideosScreen
     - Visual consistency with existing UI
     - Comprehensive widget tests
+  - [✓] Video Feed Integration
+    *Location:* 
+    - `lib/screens/saved_videos_feed_screen.dart`
+    - `lib/controllers/saved_videos_feed_controller.dart`
+    Features implemented:
+    - Vertical swipeable feed for collections
+    - Proper state management
+    - Collection-specific filtering
+    - Smooth transitions and animations
+    - Video removal handling
+    - Feed header with back navigation
   - [ ] Thumbnail generation (deferred)
     - Will be implemented as a separate enhancement
 
@@ -168,6 +179,16 @@ This document tracks all implemented and planned features for the application. I
     - Real-time synchronization
     - Atomic updates for save operations
     - Error recovery mechanisms
+  - [✓] Collection Feed Views
+    *Location:*
+    - `lib/screens/saved_videos_feed_screen.dart`
+    - `lib/controllers/saved_videos_feed_controller.dart`
+    Features implemented:
+    - Dedicated feed views for liked/saved videos
+    - Smooth transitions between videos
+    - Real-time state updates
+    - Proper error handling
+    - Loading states and feedback
 
 - [ ] **Filtering Videos by D&D Categories**  
   *Description:* Allow users to narrow down the video feed by specific content categories related to tabletop RPGs.  

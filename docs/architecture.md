@@ -45,9 +45,23 @@ TikAndTok/
 │ │ │   └── UI Components // Positioned overlay elements
 │ │ ├── profile_screen.dart // User profile management screen with image upload
 │ │ ├── saved_videos_screen.dart // Displays liked and saved videos in a tabbed interface
+│ │ ├── saved_videos_feed_screen.dart // Vertical feed view for saved/liked videos
+│ │ │ └── SavedVideosFeedScreen // Collection-specific feed implementation
+│ │ │   ├── VideoFeed integration // Vertical swipeable interface
+│ │ │   ├── Collection filtering // Based on liked/saved status
+│ │ │   └── UI Components // Header, actions, creator info
+│ │ ├── liked_videos_feed_screen.dart // (Deprecated) Merged into saved_videos_feed_screen
 │ │ ├── filter_screen.dart // (Planned) Allows filtering of videos by various criteria
 │ │ └── collections_screen.dart // (Planned) UI for managing user-created collections
 │ ├── controllers/ // Business logic and state coordination
+│ │ ├── video_feed_controller.dart // Base abstract class for feed controllers
+│ │ │ └── VideoFeedController // Abstract feed controller
+│ │ │   ├── Core feed functionality // getNextPage, onVideoInteraction
+│ │ │   ├── State management // loading, error states
+│ │ │   └── Feed configuration // title, back button
+│ │ ├── home_feed_controller.dart // Main feed implementation
+│ │ ├── liked_videos_feed_controller.dart // Liked videos feed
+│ │ ├── saved_videos_feed_controller.dart // Saved videos feed
 │ │ └── video_collection_manager.dart // Manages video collections and interactions
 │ │   └── VideoCollectionManager // Central state coordinator
 │ │     ├── State management // cache and storage coordination
@@ -376,6 +390,8 @@ The implementation follows these key principles:
    - Provides optimistic updates for interactions
    - Handles error states and recovery
    - Implements Provider pattern for state distribution
+   - Exposes getters for liked and saved videos
+   - Manages video state caching and persistence
 
 3. **SavedVideosScreen** (`screens/saved_videos_screen.dart`):
    - Tabbed interface for liked and saved videos
@@ -384,8 +400,27 @@ The implementation follows these key principles:
    - Remove functionality with optimistic updates
    - Loading and error states
    - Empty state handling
+   - Navigation to collection-specific feeds
 
-4. **Data Flow for Collections**:
+4. **SavedVideosFeedScreen** (`screens/saved_videos_feed_screen.dart`):
+   - Dedicated feed view for liked and saved videos
+   - Vertical swipeable interface
+   - Collection-specific filtering
+   - Real-time state updates
+   - Proper error handling
+   - Loading states and feedback
+   - Smooth transitions between videos
+   - Back navigation with transparent header
+
+5. **SavedVideosFeedController** (`controllers/saved_videos_feed_controller.dart`):
+   - Extends VideoFeedController for collection-specific behavior
+   - Manages pagination for filtered video sets
+   - Handles collection-specific video filtering
+   - Maintains video state consistency
+   - Provides optimistic updates for interactions
+   - Implements proper cleanup on disposal
+
+6. **Data Flow for Collections**:
    ```
    User Interaction (like/save)
    → VideoCollectionManager
@@ -393,6 +428,13 @@ The implementation follows these key principles:
      ├── Firestore transaction
      └── Real-time state update
    → UI refresh (VideoGrid/RightActionsColumn)
+   
+   Collection Feed Navigation
+   → SavedVideosFeedScreen
+     ├── Initialize SavedVideosFeedController
+     ├── Load filtered videos
+     └── Setup UI components
+   → Real-time updates via VideoCollectionManager
    ```
 
 The implementation follows these principles:
@@ -402,6 +444,9 @@ The implementation follows these principles:
 - Clear separation of concerns
 - Reusable components
 - Comprehensive test coverage
+- Smooth navigation between views
+- Efficient state management
+- Real-time synchronization
 
 ## State Management
 

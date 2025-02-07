@@ -30,7 +30,7 @@ class SavedVideosFeedController extends VideoFeedController {
        _firestoreService = firestoreService ?? FirestoreService(),
        super(
          feedTitle: collectionType.label,
-         showBackButton: true,
+         showBackButton: false,
          collectionManager: collectionManager,
        );
 
