@@ -18,6 +18,11 @@ TikAndTok/
 │ │ ├── user.dart // (TODO) User model for authentication and profile information
 │ │ ├── video.dart // Video model with VideoState, Firestore conversion, and URL validation
 │ │ ├── comment.dart // Comment model for video interactions
+│ │ ├── search.dart // Search state and models using Freezed
+│ │ │ └── SearchState // Core search state class
+│ │ │   ├── Properties // query, isLoading, error, results
+│ │ │   ├── Factory constructors // initial, loading, error states
+│ │ │   └── JSON serialization // Freezed-generated code
 │ │ └── collection.dart // (Planned) User-defined collections for bookmarked or grouped videos
 │ ├── state/ // State management and caching layer
 │ │ ├── video_state.dart // Immutable video state representation
@@ -38,6 +43,12 @@ TikAndTok/
 │ ├── screens/ // Entire UI pages of the application
 │ │ ├── login_screen.dart // Handles user authentication (login/sign-up)
 │ │ ├── home_screen.dart // (Deprecated) Previous home screen, replaced by video_viewing_screen
+│ │ ├── search_screen.dart // Search interface for videos and users
+│ │ │ └── Components // Search screen components
+│ │ │   ├── SearchBar // Debounced search input
+│ │ │   ├── RecentSearches // Local search history
+│ │ │   ├── UserResults // Horizontal user cards
+│ │ │   └── SearchResults // Combined results view
 │ │ ├── video_viewing_screen.dart // Main video viewing screen with FrontPage widget
 │ │ │ └── FrontPage // Core widget managing video feed and UI layout
 │ │ │   ├── StreamBuilder<List<Video>> // Real-time video data from Firestore
@@ -54,6 +65,17 @@ TikAndTok/
 │ │ ├── filter_screen.dart // (Planned) Allows filtering of videos by various criteria
 │ │ └── collections_screen.dart // (Planned) UI for managing user-created collections
 │ ├── controllers/ // Business logic and state coordination
+│ │ ├── search_controller.dart // Search functionality controller
+│ │ │ └── SearchController // Manages search state and operations
+│ │ │   ├── State management // SearchState updates
+│ │ │   ├── Debounced search // 300ms delay
+│ │ │   ├── Recent searches // Local storage integration
+│ │ │   └── Error handling // Search failures
+│ │ ├── search_video_feed_controller.dart // Search results video feed
+│ │ │ └── SearchVideoFeedController // Manages search results playback
+│ │ │   ├── Results management // Filtered video list
+│ │ │   ├── Pagination // Search-specific loading
+│ │ │   └── State handling // Loading and errors
 │ │ ├── video_feed_controller.dart // Base abstract class for feed controllers
 │ │ │ └── VideoFeedController // Abstract feed controller
 │ │ │   ├── Core feed functionality // getNextPage, onVideoInteraction
@@ -71,14 +93,24 @@ TikAndTok/
 │ ├── services/ // Service layer handling business logic and Firebase interactions
 │ │ ├── auth_service.dart // Authentication operations
 │ │ ├── firestore_service.dart // CRUD operations for Cloud Firestore
-│ │ │ └── Video Operations // Methods for video data management
-│ │ │   ├── streamVideos() // Real-time video feed with pagination
-│ │ │   ├── getNextVideos() // Fetch next batch of videos
-│ │ │   ├── createVideo() // Add new video document
-│ │ │   ├── updateVideoStats() // Update video metrics
-│ │ │   ├── toggleLike() // Toggle video like status
-│ │ │   ├── toggleSave() // Toggle video save status
-│ │ │   └── getVideoCollections() // Fetch user's video collections
+│ │ │ ├── User Operations // Methods for user data management
+│ │ │ │ ├── createUserProfile() // Create new user with lowercase username
+│ │ │ │ ├── updateUserProfile() // Update user data with validation
+│ │ │ │ ├── searchUsers() // Case-insensitive username search
+│ │ │ │ └── validateUsername() // Username format validation
+│ │ │ ├── Video Operations // Methods for video data management
+│ │ │ │ ├── streamVideos() // Real-time video feed with pagination
+│ │ │ │ ├── getNextVideos() // Fetch next batch of videos
+│ │ │ │ ├── createVideo() // Add new video document
+│ │ │ │ ├── updateVideoStats() // Update video metrics
+│ │ │ │ ├── toggleLike() // Toggle video like status
+│ │ │ │ ├── toggleSave() // Toggle video save status
+│ │ │ │ ├── searchVideos() // Title-based video search
+│ │ │ │ └── getVideoCollections() // Fetch user's video collections
+│ │ │ └── Search Operations // Methods for search functionality
+│ │ │   ├── searchUsers() // Username search with case-insensitive matching
+│ │ │   ├── searchVideos() // Title-based video search with pagination
+│ │ │   └── getNextFilteredVideos() // Pagination for search results
 │ │ ├── firebase_storage_service.dart // Manages video uploads and downloads
 │ │ └── messaging_service.dart // (Planned) Handles push notifications
 │ ├── widgets/ // Reusable UI components across the app
@@ -559,6 +591,189 @@ Our application uses a layered state management approach that combines Provider 
    - Provide user feedback when appropriate
    - Implement recovery mechanisms
    - Maintain data consistency
+
+## User Profile Schema
+
+Our user profile schema is designed to be simple and efficient:
+
+```typescript
+interface UserProfile {
+  username: string;     // Required, unique, lowercase, only letters/numbers/underscores
+  email: string;        // Required
+  photoURL: string;     // Optional, defaults to ''
+  bio: string;         // Optional, defaults to ''
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+```
+
+Key characteristics:
+- Username is stored in lowercase for case-insensitive matching
+- Username is used as the unique identifier and display name
+- Username validation: 3-30 characters, alphanumeric + underscores
+- Bio has a 150-character limit
+- Timestamps track creation and updates
+
+## Search Implementation
+
+The search functionality is implemented with a focus on performance and user experience:
+
+### Components
+
+1. **Search Screen** (`lib/screens/search_screen.dart`):
+   - Debounced search input (300ms)
+   - Recent searches with local storage
+   - Sectioned results display:
+     - Horizontal scrolling user results
+     - Grid layout for video results
+   - Loading states and error handling
+   - Empty state messaging
+
+2. **Search Controller** (`lib/controllers/search_controller.dart`):
+   ```dart
+   class SearchController extends ChangeNotifier {
+     final FirestoreService _firestoreService;
+     final SharedPreferences _prefs;
+     Timer? _debounceTimer;
+     SearchState _state;
+
+     // Core functionality
+     Future<void> search(String query);
+     Future<void> clearRecentSearches();
+     void _loadRecentSearches();
+   }
+   ```
+
+3. **Search State** (`lib/models/search.dart`):
+   ```dart
+   @freezed
+   class SearchState with _$SearchState {
+     const factory SearchState({
+       required String query,
+       @Default(false) bool isLoading,
+       String? error,
+       @Default([]) List<Video> videoResults,
+       @Default([]) List<Map<String, dynamic>> userResults,
+       @Default([]) List<String> recentSearches,
+     }) = _SearchState;
+   }
+   ```
+
+### Data Flow
+
+1. **Search Input**:
+   ```
+   User Input → Debounce (300ms)
+   → SearchController.search()
+   → Parallel Queries:
+     ├── searchUsers() - Case-insensitive username search
+     └── searchVideos() - Title-based video search
+   → Update SearchState
+   → UI Refresh
+   ```
+
+2. **Recent Searches**:
+   ```
+   Search Completion
+   → Add to recent searches
+   → Update SharedPreferences
+   → Update SearchState
+   → UI Refresh
+   ```
+
+3. **Result Selection**:
+   ```
+   User Result Selection
+   → Navigate to user profile (TODO)
+
+   Video Result Selection
+   → Initialize SearchVideoFeedController
+   → Navigate to video feed view
+   → Start playback at selected index
+   ```
+
+### Search Indexing
+
+1. **User Search Index**:
+   - Username field indexed for case-insensitive search
+   - Compound index with createdAt for sorting
+   ```json
+   {
+     "collectionGroup": "users",
+     "queryScope": "COLLECTION",
+     "fields": [
+       { "fieldPath": "username", "order": "ASCENDING" },
+       { "fieldPath": "createdAt", "order": "DESCENDING" }
+     ]
+   }
+   ```
+
+2. **Video Search Index**:
+   - Title field indexed for text search
+   - Compound index with createdAt for sorting
+   ```json
+   {
+     "collectionGroup": "videos",
+     "queryScope": "COLLECTION",
+     "fields": [
+       { "fieldPath": "title", "order": "ASCENDING" },
+       { "fieldPath": "createdAt", "order": "DESCENDING" }
+     ]
+   }
+   ```
+
+### Performance Optimizations
+
+1. **Query Optimization**:
+   - Debounced search to reduce database queries
+   - Paginated results for both users and videos
+   - Proper indexing for efficient queries
+
+2. **UI Performance**:
+   - Lazy loading of video thumbnails
+   - Horizontal scrolling for user results
+   - Grid layout for video results
+   - Loading states for feedback
+
+3. **State Management**:
+   - Immutable state with Freezed
+   - Efficient updates via ChangeNotifier
+   - Local storage for recent searches
+   - Error handling and recovery
+
+### User Experience
+
+1. **Search Interface**:
+   - Clean, minimal design
+   - Real-time feedback
+   - Clear error messages
+   - Empty state handling
+
+2. **Results Display**:
+   - Users shown with '@' prefix
+   - Profile pictures with fallbacks
+   - Video thumbnails in grid layout
+   - Clear section headers
+
+3. **Navigation**:
+   - Smooth transitions
+   - Back button for easy return
+   - Recent searches for quick access
+   - Clear history option
+
+### Future Enhancements
+
+1. **Planned Improvements**:
+   - Advanced filtering options
+   - Tag-based search
+   - Search history sync
+   - Enhanced result ranking
+
+2. **Optimization Opportunities**:
+   - Server-side search
+   - Full-text search
+   - Fuzzy matching
+   - Result caching
 
 ---
 

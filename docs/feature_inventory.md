@@ -18,7 +18,7 @@ This document tracks all implemented and planned features for the application. I
     - Implemented and deployed Cloud Function
     - Creates Firestore document with default fields:
       - email (from Auth)
-      - username (derived from display name)
+      - username (lowercase, unique)
       - bio (empty string)
       - photoURL (from Auth or empty)
       - createdAt & updatedAt timestamps
@@ -28,13 +28,40 @@ This document tracks all implemented and planned features for the application. I
     *Location:* `lib/screens/profile_screen.dart`
     - Implemented profile screen with:
       - Profile picture upload (camera/gallery)
-      - Username field with validation
+      - Username field with validation and lowercase storage
       - Bio field with character limit
       - Update profile button with loading state
       - Logout functionality in AppBar
       - Error handling and user feedback
     - Added navigation from bottom bar profile icon
     *Location:* `lib/widgets/video_viewing/custom_bottom_navigation_bar.dart`
+
+- [✓] **Search Functionality**
+  *Description:* Enable users to search for videos and other users.
+  **Sub-Tasks:**
+  - [✓] Implement search UI
+    *Location:* `lib/screens/search_screen.dart`
+    - Search bar with debounce
+    - Recent searches list
+    - Clear search history option
+    - Loading states and error handling
+  - [✓] User search
+    *Location:* `lib/services/firestore_service.dart`
+    - Case-insensitive username search
+    - User card display with '@' prefix
+    - Profile picture integration
+    - Navigation placeholder for profiles
+  - [✓] Video search
+    *Location:* `lib/services/firestore_service.dart`
+    - Title-based video search
+    - Video grid display
+    - Navigation to video viewing
+  - [✓] State Management
+    *Location:* `lib/controllers/search_controller.dart`
+    - Provider integration
+    - Recent searches persistence
+    - Debounced queries
+    - Error handling
 
 - [✓] **Core Video Feed & Playback**  
   *Description:* Provide a seamless, scrollable video feed with integrated creator profiles as the primary interface for content discovery.  
