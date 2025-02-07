@@ -775,6 +775,100 @@ The search functionality is implemented with a focus on performance and user exp
    - Fuzzy matching
    - Result caching
 
+## State Management Implementation
+
+Our application uses a combination of Provider and Freezed for robust state management:
+
+### Immutable State with Freezed
+
+We use Freezed to create immutable state classes that are:
+- Type-safe
+- Immutable
+- Easy to update with `copyWith`
+- Automatically implement equality
+- Support JSON serialization when needed
+
+Example implementation:
+```dart
+@freezed
+class SearchState with _$SearchState {
+  const factory SearchState({
+    required String query,
+    @Default(false) bool isLoading,
+    String? error,
+    @Default([]) List<Video> videoResults,
+    @Default([]) List<Map<String, dynamic>> userResults,
+    @Default([]) List<String> recentSearches,
+  }) = _SearchState;
+
+  factory SearchState.initial() => const SearchState(query: '');
+  
+  factory SearchState.loading(String query) => SearchState(
+    query: query,
+    isLoading: true,
+  );
+
+  factory SearchState.fromJson(Map<String, dynamic> json) => 
+      _$SearchStateFromJson(json);
+}
+```
+
+### State Management Patterns
+
+1. **Controller Layer**
+   ```dart
+   class SearchController extends ChangeNotifier {
+     SearchState _state = SearchState.initial();
+     SearchState get state => _state;
+
+     void updateState(SearchState newState) {
+       _state = newState;
+       notifyListeners();
+     }
+   }
+   ```
+
+2. **UI Integration**
+   ```dart
+   Consumer<SearchController>(
+     builder: (context, controller, _) {
+       final state = controller.state;
+       // Use immutable state safely
+     },
+   )
+   ```
+
+3. **State Updates**
+   ```dart
+   // Immutable updates using copyWith
+   _state = _state.copyWith(
+     isLoading: false,
+     videoResults: newVideos,
+   );
+   ```
+
+### Benefits of This Approach
+
+1. **Type Safety**
+   - Compile-time checks for state updates
+   - No runtime type errors
+   - Clear state structure
+
+2. **Immutability**
+   - Prevents accidental state mutations
+   - Makes state changes trackable
+   - Enables efficient equality checks
+
+3. **Developer Experience**
+   - Generated code reduces boilerplate
+   - Consistent patterns across the app
+   - Easy to test and debug
+
+4. **Performance**
+   - Efficient updates with copyWith
+   - Optimized equality checks
+   - Minimal rebuilds
+
 ---
 
 This architecture file reflects our current codebase within the `/lib` directory. As new features and modules are added, please update this document accordingly to maintain an accurate overview of the project structure.

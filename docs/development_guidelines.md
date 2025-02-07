@@ -56,4 +56,57 @@ This document establishes our coding standards, integration protocols, and best 
 - **Development Standards:**  
   Amend this document (`development_guidelines.md`) as needed when new practices or tools are adopted by the team.
 
+### State Management with Freezed
+
+- Use Freezed for all immutable state classes
+  ```dart
+  @freezed
+  class SearchState with _$SearchState {
+    const factory SearchState({
+      required String query,
+      @Default(false) bool isLoading,
+      String? error,
+      @Default([]) List<Video> videoResults,
+      @Default([]) List<Map<String, dynamic>> userResults,
+      @Default([]) List<String> recentSearches,
+    }) = _SearchState;
+  }
+  ```
+
+- Follow these patterns for Freezed classes:
+  - Always declare factory constructors as `const`
+  - Use `@Default` for fields with default values
+  - Implement `fromJson/toJson` for classes that need serialization
+  - Use private constructors for internal state
+  - Keep state classes focused and single-purpose
+
+- Generate Freezed files:
+  ```bash
+  flutter pub run build_runner build --delete-conflicting-outputs
+  ```
+  - Run after any changes to Freezed classes
+  - Use `--delete-conflicting-outputs` to avoid conflicts
+  - Consider using `watch` instead of `build` during development
+
+- State Updates:
+  - Use `copyWith` for immutable updates
+  - Avoid direct state modification
+  - Handle all edge cases in state transitions
+  - Provide clear error states
+  - Use factory constructors for common states
+
+### Dependency Management
+
+- Use exact versions in pubspec.yaml for stability
+- Keep dependencies up to date with `flutter pub outdated`
+- Run `flutter pub upgrade` regularly
+- Document major dependency changes
+- Use dev_dependencies appropriately:
+  ```yaml
+  dev_dependencies:
+    build_runner: ^2.4.8
+    freezed: ^2.4.7
+    json_serializable: ^6.7.1
+  ```
+
 --- 
