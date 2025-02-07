@@ -5,6 +5,137 @@ import '../../models/video.dart';
 import '../../services/firestore_service.dart';
 import '../../screens/user_profile_screen.dart';
 
+class _AnimatedFollowButton extends StatefulWidget {
+  final bool isFollowing;
+  final VoidCallback onPressed;
+  final int? followerCount;
+  final bool isUpdating;
+
+  const _AnimatedFollowButton({
+    required this.isFollowing,
+    required this.onPressed,
+    this.followerCount,
+    this.isUpdating = false,
+  });
+
+  @override
+  State<_AnimatedFollowButton> createState() => _AnimatedFollowButtonState();
+}
+
+class _AnimatedFollowButtonState extends State<_AnimatedFollowButton> 
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+  bool _isPressed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 150),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.95,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    ));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _handleTapDown(TapDownDetails details) {
+    if (!widget.isUpdating) {
+      _controller.forward();
+      setState(() => _isPressed = true);
+    }
+  }
+
+  void _handleTapUp(TapUpDetails details) {
+    _controller.reverse();
+    setState(() => _isPressed = false);
+  }
+
+  void _handleTapCancel() {
+    _controller.reverse();
+    setState(() => _isPressed = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: _handleTapDown,
+      onTapUp: _handleTapUp,
+      onTapCancel: _handleTapCancel,
+      child: AnimatedBuilder(
+        animation: _scaleAnimation,
+        builder: (context, child) => Transform.scale(
+          scale: _scaleAnimation.value,
+          child: child,
+        ),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 8,
+          ),
+          decoration: BoxDecoration(
+            color: widget.isFollowing
+              ? Colors.grey.withOpacity(_isPressed ? 0.4 : 0.3)
+              : Colors.blue.withOpacity(_isPressed ? 0.8 : 0.6),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: widget.isUpdating ? null : widget.onPressed,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (widget.isUpdating)
+                    const SizedBox(
+                      width: 12,
+                      height: 12,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  else
+                    Text(
+                      widget.isFollowing ? 'Following' : 'Follow',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  if (!widget.isUpdating && widget.followerCount != null) ...[
+                    const SizedBox(width: 4),
+                    Text(
+                      '${widget.followerCount}',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.7),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// CreatorInfoGroup shows details about the video creator such as profile picture,
 /// follow button, username, and video title. It is positioned at the bottom-left.
 class CreatorInfoGroup extends StatelessWidget {
@@ -88,50 +219,55 @@ class CreatorInfoGroup extends StatelessWidget {
                     builder: (context, followSnapshot) {
                       final isFollowing = followSnapshot.data ?? false;
                       
-                      return ElevatedButton(
-                        onPressed: () async {
-                          try {
-                            await FirestoreService().toggleFollow(
-                              followerId: currentUserId,
-                              followedId: video!.userId,
-                            );
-                          } catch (e) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Error: $e'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          }
+                      return StatefulBuilder(
+                        builder: (context, setState) {
+                          bool isUpdating = false;
+                          int? optimisticFollowerCount = userData['followerCount'] as int?;
+
+                          return _AnimatedFollowButton(
+                            isFollowing: isFollowing,
+                            followerCount: optimisticFollowerCount,
+                            isUpdating: isUpdating,
+                            onPressed: () async {
+                              // Set updating state
+                              setState(() {
+                                isUpdating = true;
+                                // Optimistically update follower count
+                                if (optimisticFollowerCount != null) {
+                                  optimisticFollowerCount = optimisticFollowerCount! + (isFollowing ? -1 : 1);
+                                }
+                              });
+
+                              try {
+                                await FirestoreService().toggleFollow(
+                                  followerId: currentUserId,
+                                  followedId: video!.userId,
+                                );
+                              } catch (e) {
+                                // Revert optimistic update on error
+                                setState(() {
+                                  if (optimisticFollowerCount != null) {
+                                    optimisticFollowerCount = optimisticFollowerCount! + (isFollowing ? 1 : -1);
+                                  }
+                                });
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Error: $e'),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                              } finally {
+                                if (context.mounted) {
+                                  setState(() {
+                                    isUpdating = false;
+                                  });
+                                }
+                              }
+                            },
+                          );
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: isFollowing 
-                            ? Colors.grey.withOpacity(0.3)
-                            : Colors.white.withOpacity(0.2),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(isFollowing ? 'Following' : 'Follow'),
-                            if (userData['followerCount'] != null) ...[
-                              const SizedBox(width: 4),
-                              Text(
-                                '${userData['followerCount']}',
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.7),
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
                       );
                     },
                   ),

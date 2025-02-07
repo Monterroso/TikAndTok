@@ -647,30 +647,34 @@ class FirestoreService {
     }
   }
 
-  /// Gets all videos by a specific user
+  /// Gets videos by a specific user
   Future<List<Video>> getUserVideos({
     required String userId,
-    Video? startAfter,
-    int limit = 12,
+    DocumentSnapshot? startAfter,
+    int limit = 10,
   }) async {
     try {
+      debugPrint('Querying videos for user: $userId, limit: $limit');
+      
       Query<Map<String, dynamic>> query = _videosCollection
           .where('userId', isEqualTo: userId)
           .orderBy('createdAt', descending: true)
           .limit(limit);
 
       if (startAfter != null) {
-        final startAfterDoc = await _videosCollection.doc(startAfter.id).get();
-        query = query.startAfterDocument(startAfterDoc);
+        query = query.startAfterDocument(startAfter);
       }
 
       final querySnapshot = await query.get();
-      return querySnapshot.docs
-          .map((doc) => Video.fromFirestore(doc))
-          .toList();
+      return querySnapshot.docs.map((doc) => Video.fromFirestore(doc)).toList();
     } catch (e) {
       debugPrint('Error getting user videos: $e');
-      throw 'Failed to get user videos: $e';
+      if (e.toString().contains('failed-precondition') && 
+          e.toString().contains('index')) {
+        throw 'Database index for user videos is being built. Please try again in a few minutes. '
+            'If the problem persists, please contact support.';
+      }
+      rethrow;
     }
   }
 
@@ -745,5 +749,10 @@ class FirestoreService {
       debugPrint('Error toggling follow: $e');
       throw 'Failed to update follow status: $e';
     }
+  }
+
+  /// Gets a video document reference
+  Future<DocumentSnapshot<Map<String, dynamic>>> getVideoDocument(String videoId) async {
+    return await _videosCollection.doc(videoId).get();
   }
 }

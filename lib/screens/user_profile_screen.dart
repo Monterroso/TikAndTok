@@ -82,6 +82,10 @@ class _UserProfileView extends StatelessWidget {
                     sliver: VideoGrid(
                       videos: controller.videos,
                       isLoading: controller.isLoadingVideos,
+                      hasMore: controller.hasMoreVideos,
+                      onLoadMore: controller.loadMoreVideos,
+                      error: controller.error,
+                      onRetry: () => controller.refresh(),
                       onVideoTap: (video, index) {
                         Navigator.of(context).push(
                           MaterialPageRoute(

@@ -12,6 +12,8 @@ class VideoGrid extends StatelessWidget {
   final String emptyStateMessage;
   final IconData emptyStateIcon;
   final void Function(Video video, int index)? onVideoTap;
+  final VoidCallback? onLoadMore;
+  final bool hasMore;
 
   const VideoGrid({
     Key? key,
@@ -23,6 +25,8 @@ class VideoGrid extends StatelessWidget {
     this.emptyStateMessage = 'No videos available',
     this.emptyStateIcon = Icons.videocam_off,
     this.onVideoTap,
+    this.onLoadMore,
+    this.hasMore = false,
   }) : super(key: key);
 
   @override
@@ -79,20 +83,65 @@ class VideoGrid extends StatelessWidget {
 
     return SliverGrid(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 9 / 16, // Video aspect ratio
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
+        crossAxisCount: 3,
+        childAspectRatio: 9 / 16,
+        crossAxisSpacing: 2,
+        mainAxisSpacing: 2,
       ),
       delegate: SliverChildBuilderDelegate(
         (context, index) {
-          return VideoCard(
-            video: videos[index],
-            actionBuilder: actionBuilder,
-            onTap: onVideoTap != null ? () => onVideoTap!(videos[index], index) : null,
+          // Check if we need to load more videos
+          if (index >= videos.length - 3 && onLoadMore != null && hasMore && !isLoading) {
+            onLoadMore!();
+          }
+
+          // Show loading indicator at the bottom
+          if (index == videos.length) {
+            if (isLoading) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            }
+            return null;
+          }
+
+          if (index >= videos.length) {
+            return null;
+          }
+
+          final video = videos[index];
+          return GestureDetector(
+            onTap: () => onVideoTap?.call(video, index),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.network(
+                  video.url,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: Colors.grey[900],
+                      child: const Icon(
+                        Icons.error_outline,
+                        color: Colors.white54,
+                      ),
+                    );
+                  },
+                ),
+                if (actionBuilder != null)
+                  Positioned(
+                    right: 4,
+                    top: 4,
+                    child: actionBuilder!(video),
+                  ),
+              ],
+            ),
           );
         },
-        childCount: videos.length,
+        childCount: videos.length + (isLoading ? 1 : 0),
       ),
     );
   }

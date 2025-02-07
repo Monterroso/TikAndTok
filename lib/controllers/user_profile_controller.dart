@@ -76,8 +76,14 @@ class UserProfileController extends ChangeNotifier {
 
       _videos = videos;
       _hasMoreVideos = videos.length >= 12;
+      _error = null;
     } catch (e) {
       debugPrint('Error loading videos: $e');
+      if (e.toString().contains('index is being built')) {
+        _error = 'Loading videos... Please wait a moment and try again.';
+      } else {
+        _error = 'Failed to load videos. Please try again.';
+      }
     } finally {
       _isLoadingVideos = false;
       notifyListeners();
@@ -94,9 +100,10 @@ class UserProfileController extends ChangeNotifier {
       final lastVideo = _videos.lastOrNull;
       if (lastVideo == null) return;
 
+      final lastVideoDoc = await _firestoreService.getVideoDocument(lastVideo.id);
       final moreVideos = await _firestoreService.getUserVideos(
         userId: userId,
-        startAfter: lastVideo,
+        startAfter: lastVideoDoc,
         limit: 12,
       );
 
