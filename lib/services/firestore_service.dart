@@ -489,4 +489,64 @@ class FirestoreService {
       throw 'Failed to get saved videos: $e';
     }
   }
+
+  /// Fetches videos by their IDs
+  Future<List<Video>> getVideosByIds({
+    required List<String> videoIds,
+  }) async {
+    if (videoIds.isEmpty) return [];
+    
+    try {
+      // Firestore limits batched reads to 10 documents at a time
+      const batchSize = 10;
+      final batches = <Future<List<Video>>>[];
+      
+      for (var i = 0; i < videoIds.length; i += batchSize) {
+        final end = (i + batchSize < videoIds.length) ? i + batchSize : videoIds.length;
+        final batchIds = videoIds.sublist(i, end);
+        
+        final batch = _videosCollection
+          .where(FieldPath.documentId, whereIn: batchIds)
+          .get()
+          .then((snapshot) => 
+            snapshot.docs.map((doc) => Video.fromFirestore(doc)).toList()
+          );
+          
+        batches.add(batch);
+      }
+      
+      final results = await Future.wait(batches);
+      return results.expand((videos) => videos).toList();
+    } catch (e) {
+      throw 'Failed to fetch videos by IDs: $e';
+    }
+  }
+
+  /// Fetches the next batch of videos after the last video, filtered by a set of IDs
+  Future<List<Video>> getNextFilteredVideos({
+    required DocumentSnapshot lastVideo,
+    int limit = 10,
+    Set<String>? filterIds,
+  }) async {
+    try {
+      var query = _videosCollection
+        .orderBy('createdAt', descending: true)
+        .startAfterDocument(lastVideo)
+        .limit(limit);
+
+      if (filterIds != null && filterIds.isNotEmpty) {
+        // Convert the set to a list for the whereIn clause
+        final filterIdsList = filterIds.toList();
+        query = query.where(FieldPath.documentId, whereIn: filterIdsList);
+      }
+
+      final querySnapshot = await query.get();
+
+      return querySnapshot.docs
+        .map((doc) => Video.fromFirestore(doc))
+        .toList();
+    } catch (e) {
+      throw 'Failed to fetch next videos: $e';
+    }
+  }
 }

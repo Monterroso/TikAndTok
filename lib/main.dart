@@ -7,12 +7,14 @@ import 'firebase_options.dart';
 import 'screens/login_screen.dart';
 import 'screens/video_viewing_screen.dart';
 import 'controllers/video_collection_manager.dart';
+import 'controllers/liked_videos_feed_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  
   runApp(const MyApp());
 }
 
@@ -31,7 +33,6 @@ class MyApp extends StatelessWidget {
       child: FutureBuilder<VideoCollectionManager>(
         future: () async {
           try {
-            // Ensure SharedPreferences is initialized first
             await SharedPreferences.getInstance();
             final manager = await VideoCollectionManager.create();
             await manager.initialize();
@@ -62,7 +63,6 @@ class MyApp extends StatelessWidget {
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: () {
-                          // Force rebuild of widget to retry initialization
                           (context as Element).markNeedsBuild();
                         },
                         child: const Text('Retry'),
@@ -84,13 +84,23 @@ class MyApp extends StatelessWidget {
             );
           }
 
-          return ChangeNotifierProvider.value(
-            value: snapshot.data!,
+          return MultiProvider(
+            providers: [
+              ChangeNotifierProvider.value(
+                value: snapshot.data!,
+              ),
+              ProxyProvider<VideoCollectionManager, LikedVideosFeedController>(
+                update: (context, manager, _) => LikedVideosFeedController(
+                  userId: FirebaseAuth.instance.currentUser?.uid ?? '',
+                  collectionManager: manager,
+                ),
+              ),
+            ],
             child: MaterialApp(
               title: 'D&D TikTok',
               theme: ThemeData(
-                colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-                useMaterial3: true,
+                primarySwatch: Colors.blue,
+                visualDensity: VisualDensity.adaptivePlatformDensity,
               ),
               home: const AuthWrapper(),
             ),

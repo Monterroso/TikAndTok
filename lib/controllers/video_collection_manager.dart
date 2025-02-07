@@ -401,43 +401,27 @@ class VideoCollectionManager extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Gets the like count for a video, including optimistic updates
-  int getLikeCount(String videoId) {
-    final state = _cache.get(videoId);
-    if (state == null) return 0;
+  /// Gets the set of video IDs that are liked by the user
+  Set<String> getLikedVideoIds(String userId) {
+    final likedIds = <String>{};
     
-    final video = state.videoData;
-    if (video == null || _currentUserId == null) return video?.likeCount ?? 0;
-
-    // Use cached state for optimistic updates
-    final isLikedInCache = state.isLiked;
-    final isLikedInVideo = video.isLikedByUser(_currentUserId);
-
-    // If the states differ, adjust the count accordingly
-    if (isLikedInCache != isLikedInVideo) {
-      return video.likeCount + (isLikedInCache ? 1 : -1);
+    // Check cache for liked videos
+    for (final state in _cache.values()) {
+      if (state.isLiked && state.videoData?.isLikedByUser(userId) == true) {
+        likedIds.add(state.videoId);
+      }
     }
-
-    return video.likeCount;
+    
+    return likedIds;
   }
 
-  /// Gets the save count for a video, including optimistic updates
+  /// Gets the like count for a video
+  int getLikeCount(String videoId) {
+    return _cache.get(videoId)?.videoData?.likes ?? 0;
+  }
+
+  /// Gets the save count for a video
   int getSaveCount(String videoId) {
-    final state = _cache.get(videoId);
-    if (state == null) return 0;
-    
-    final video = state.videoData;
-    if (video == null || _currentUserId == null) return video?.saveCount ?? 0;
-
-    // Use cached state for optimistic updates
-    final isSavedInCache = state.isSaved;
-    final isSavedInVideo = video.isSavedByUser(_currentUserId);
-
-    // If the states differ, adjust the count accordingly
-    if (isSavedInCache != isSavedInVideo) {
-      return video.saveCount + (isSavedInCache ? 1 : -1);
-    }
-
-    return video.saveCount;
+    return _cache.get(videoId)?.videoData?.savedBy.length ?? 0;
   }
 } 
