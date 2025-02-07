@@ -201,6 +201,45 @@ This document tracks all implemented and planned features for the application. I
   - [ ] Thumbnail generation (deferred)
     - Will be implemented as a separate enhancement
 
+- [ ] **User Profile Viewing**
+  *Description:* Enable users to view other users' profiles, their videos, and interact through following.
+  **Sub-Tasks:**
+  - [ ] Create user profile viewing screen
+    *Location:* `lib/screens/user_profile_screen.dart`
+    Features to implement:
+    - Profile header with user info
+    - Stats display (videos, followers, following)
+    - Follow/unfollow functionality
+    - Video grid of user's content
+    - Loading states and error handling
+  - [ ] Implement user videos feed
+    *Location:* `lib/screens/user_videos_feed_screen.dart`
+    Features to implement:
+    - Filtered video feed by user
+    - Vertical swipeable interface
+    - Integration with existing player
+  - [ ] Add navigation from multiple entry points
+    *Location:* 
+    - `lib/screens/search_screen.dart`
+    - `lib/widgets/video_viewing/creator_info_group.dart`
+    - Comment sections (future implementation)
+  - [ ] Implement follow system
+    *Location:* `lib/services/firestore_service.dart`
+    Features to implement:
+    - Follow/unfollow functionality
+    - Real-time follower counts
+    - Proper indexing and queries
+    - Optimistic updates
+  - [ ] State management and controllers
+    *Location:* 
+    - `lib/controllers/user_profile_controller.dart`
+    - `lib/controllers/user_videos_feed_controller.dart`
+    Features to implement:
+    - Profile data management
+    - Follow state handling
+    - Video feed state
+    - Error handling
+
 ## Should-Have Features
 
 - [✓] **Saving/Bookmarking Video Content**  
