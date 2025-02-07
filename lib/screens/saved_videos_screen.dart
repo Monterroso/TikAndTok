@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../controllers/video_collection_manager.dart';
 import '../widgets/video_viewing/video_grid.dart';
 import '../models/video.dart';
+import 'saved_videos_feed_screen.dart';
 
 /// Represents the different types of video collections
 enum CollectionType {
@@ -172,7 +173,16 @@ class _SavedVideosScreenState extends State<SavedVideosScreen> with SingleTicker
               tooltip: 'Remove video',
             ),
           ),
-          onVideoTap: () {},
+          onVideoTap: (video, index) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => SavedVideosFeedScreen(
+                  initialVideoIndex: index,
+                  collectionType: type,
+                ),
+              ),
+            );
+          },
         );
       },
     );

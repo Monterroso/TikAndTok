@@ -4,11 +4,15 @@ import '../models/video.dart';
 import '../services/firestore_service.dart';
 import 'video_feed_controller.dart';
 import 'video_collection_manager.dart';
+import 'package:flutter/material.dart';
+import '../screens/saved_videos_screen.dart';
 
 class SavedVideosFeedController extends VideoFeedController {
   final FirestoreService _firestoreService;
   final String _userId;
   final VideoCollectionManager _collectionManager;
+  final CollectionType collectionType;
+  final int initialIndex;
   bool _isLoading = false;
   String? _error;
   bool _hasMore = true;
@@ -18,6 +22,8 @@ class SavedVideosFeedController extends VideoFeedController {
   SavedVideosFeedController({
     required String userId,
     required VideoCollectionManager collectionManager,
+    required this.collectionType,
+    required this.initialIndex,
     FirestoreService? firestoreService,
   }) : _userId = userId,
        _collectionManager = collectionManager,
@@ -119,4 +125,20 @@ class SavedVideosFeedController extends VideoFeedController {
     _error = null;
     notifyListeners();
   }
+
+  @override
+  Future<List<Video>> fetchVideos() async {
+    // First ensure the videos are loaded
+    switch (collectionType) {
+      case CollectionType.liked:
+        await _collectionManager.fetchLikedVideos(_userId);
+        return _collectionManager.likedVideos;
+      case CollectionType.saved:
+        await _collectionManager.fetchSavedVideos(_userId);
+        return _collectionManager.savedVideos;
+    }
+  }
+
+  @override
+  int get initialPage => initialIndex;
 } 

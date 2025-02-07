@@ -417,12 +417,14 @@ class VideoCollectionManager extends ChangeNotifier {
 
   /// Gets the like count for a video
   int getLikeCount(String videoId) {
-    return _cache.get(videoId)?.videoData?.likes ?? 0;
+    final state = getCachedVideoState(videoId);
+    return state?.videoData?.likes ?? 0;
   }
 
   /// Gets the save count for a video
   int getSaveCount(String videoId) {
-    return _cache.get(videoId)?.videoData?.savedBy.length ?? 0;
+    final state = getCachedVideoState(videoId);
+    return state?.videoData?.savedBy.length ?? 0;
   }
 
   /// Gets the set of saved video IDs for a user

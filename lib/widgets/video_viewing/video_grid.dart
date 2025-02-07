@@ -11,7 +11,7 @@ class VideoGrid extends StatelessWidget {
   final Widget Function(Video video)? actionBuilder;
   final String emptyStateMessage;
   final IconData emptyStateIcon;
-  final VoidCallback? onVideoTap;
+  final void Function(Video video, int index)? onVideoTap;
 
   const VideoGrid({
     Key? key,
@@ -90,7 +90,7 @@ class VideoGrid extends StatelessWidget {
         return VideoCard(
           video: videos[index],
           actionBuilder: actionBuilder,
-          onTap: onVideoTap,
+          onTap: onVideoTap != null ? () => onVideoTap!(videos[index], index) : null,
         );
       },
     );
@@ -111,83 +111,80 @@ class VideoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        // Make the card tappable (now below other elements)
-        Positioned.fill(
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(8),
-              onTap: onTap,
-            ),
-          ),
-        ),
-        // Placeholder container with gradient
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.grey[800]!,
-                Colors.grey[900]!,
-              ],
-            ),
-          ),
-          child: const Center(
-            child: Icon(
-              Icons.play_circle_outline,
-              color: Colors.white54,
-              size: 48,
-            ),
-          ),
-        ),
-        // Gradient overlay for better text visibility
-        Positioned.fill(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.transparent,
-                  Colors.black.withOpacity(0.7),
-                ],
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Placeholder container with gradient
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.grey[800]!,
+                    Colors.grey[900]!,
+                  ],
+                ),
+              ),
+              child: const Center(
+                child: Icon(
+                  Icons.play_circle_outline,
+                  color: Colors.white54,
+                  size: 48,
+                ),
               ),
             ),
-          ),
-        ),
-        // Video title
-        Positioned(
-          left: 8,
-          right: 8,
-          bottom: 8,
-          child: Text(
-            video.title,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
+            // Gradient overlay for better text visibility
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withOpacity(0.7),
+                    ],
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
-        // Custom action (like remove button) - now on top
-        if (actionBuilder != null)
-          Positioned(
-            top: 8,
-            right: 8,
-            child: Material(
-              color: Colors.transparent,
-              child: actionBuilder!(video),
+            // Video title
+            Positioned(
+              left: 8,
+              right: 8,
+              bottom: 8,
+              child: Text(
+                video.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
-          ),
-      ],
+            // Custom action (like remove button) - now on top
+            if (actionBuilder != null)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Material(
+                  color: Colors.transparent,
+                  child: actionBuilder!(video),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 } 
