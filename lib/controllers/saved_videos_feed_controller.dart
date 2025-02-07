@@ -2,10 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/video.dart';
 import '../services/firestore_service.dart';
-import 'video_collection_manager.dart';
 import 'video_feed_controller.dart';
+import 'video_collection_manager.dart';
 
-class LikedVideosFeedController extends VideoFeedController {
+class SavedVideosFeedController extends VideoFeedController {
   final FirestoreService _firestoreService;
   final String _userId;
   final VideoCollectionManager _collectionManager;
@@ -15,7 +15,7 @@ class LikedVideosFeedController extends VideoFeedController {
   DocumentSnapshot? _lastDocument;
   Video? _currentVideo;
 
-  LikedVideosFeedController({
+  SavedVideosFeedController({
     required String userId,
     required VideoCollectionManager collectionManager,
     FirestoreService? firestoreService,
@@ -23,7 +23,7 @@ class LikedVideosFeedController extends VideoFeedController {
        _collectionManager = collectionManager,
        _firestoreService = firestoreService ?? FirestoreService(),
        super(
-         feedTitle: 'Liked Videos',
+         feedTitle: 'Saved Videos',
          showBackButton: true,
          collectionManager: collectionManager,
        );
@@ -38,10 +38,10 @@ class LikedVideosFeedController extends VideoFeedController {
       _isLoading = true;
       notifyListeners();
 
-      // Get liked videos from cache
-      final likedVideoIds = _collectionManager.getLikedVideoIds(_userId);
+      // Get saved videos from cache
+      final savedVideoIds = _collectionManager.getSavedVideoIds(_userId);
       
-      if (likedVideoIds.isEmpty) {
+      if (savedVideoIds.isEmpty) {
         _hasMore = false;
         return [];
       }
@@ -57,17 +57,17 @@ class LikedVideosFeedController extends VideoFeedController {
             .get();
       }
 
-      // Get the next batch of videos that are in the likedVideoIds set
+      // Get the next batch of videos that are in the savedVideoIds set
       if (_lastDocument != null) {
         videos = await _firestoreService.getNextFilteredVideos(
           lastVideo: _lastDocument!,
           limit: pageSize,
-          filterIds: likedVideoIds,
+          filterIds: savedVideoIds,
         );
       } else {
         // If no last document, start from the beginning
         videos = await _firestoreService.getVideosByIds(
-          videoIds: likedVideoIds.take(pageSize).toList(),
+          videoIds: savedVideoIds.take(pageSize).toList(),
         );
       }
 
@@ -85,7 +85,7 @@ class LikedVideosFeedController extends VideoFeedController {
 
       return videos;
     } catch (e) {
-      _error = 'Failed to load liked videos: $e';
+      _error = 'Failed to load saved videos: $e';
       return [];
     } finally {
       _isLoading = false;
@@ -101,8 +101,8 @@ class LikedVideosFeedController extends VideoFeedController {
 
   @override
   bool shouldKeepVideo(Video video) {
-    // Only keep videos that are still liked
-    return _collectionManager.isVideoLiked(video.id);
+    // Only keep videos that are still saved
+    return _collectionManager.isVideoSaved(video.id);
   }
 
   @override

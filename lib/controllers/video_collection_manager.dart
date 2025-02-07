@@ -401,7 +401,7 @@ class VideoCollectionManager extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Gets the set of video IDs that are liked by the user
+  /// Gets the set of liked video IDs for a user
   Set<String> getLikedVideoIds(String userId) {
     final likedIds = <String>{};
     
@@ -423,5 +423,31 @@ class VideoCollectionManager extends ChangeNotifier {
   /// Gets the save count for a video
   int getSaveCount(String videoId) {
     return _cache.get(videoId)?.videoData?.savedBy.length ?? 0;
+  }
+
+  /// Gets the set of saved video IDs for a user
+  Set<String> getSavedVideoIds(String userId) {
+    final savedIds = <String>{};
+    
+    // Check cache for saved videos
+    for (final state in _cache.values()) {
+      if (state.isSaved && state.videoData?.isSavedByUser(userId) == true) {
+        savedIds.add(state.videoId);
+      }
+    }
+    
+    return savedIds;
+  }
+
+  /// Checks if a video is liked by the current user
+  bool isVideoLiked(String videoId) {
+    final state = getCachedVideoState(videoId);
+    return state?.isLiked ?? false;
+  }
+
+  /// Checks if a video is saved by the current user
+  bool isVideoSaved(String videoId) {
+    final state = getCachedVideoState(videoId);
+    return state?.isSaved ?? false;
   }
 } 
