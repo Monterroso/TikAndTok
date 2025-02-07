@@ -44,7 +44,10 @@ class _VideoFeedState extends State<VideoFeed> with TickerProviderStateMixin {
     _pageController = PageController(
       initialPage: widget.initialIndex ?? 0,
     );
-    _loadInitialVideos();
+    // Schedule the load for after the build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadInitialVideos();
+    });
   }
 
   @override
@@ -54,25 +57,27 @@ class _VideoFeedState extends State<VideoFeed> with TickerProviderStateMixin {
   }
 
   Future<void> _loadInitialVideos() async {
+    if (!mounted) return;
+    
     try {
       final videos = await widget.controller.getInitialVideos();
-      if (mounted) {
-        setState(() {
-          _videos.addAll(videos);
-          _isInitialLoad = false;
-        });
-        if (_videos.isNotEmpty && widget.onVideoChanged != null) {
-          final initialIndex = widget.initialIndex ?? 0;
-          widget.onVideoChanged!(_videos[initialIndex]);
-        }
+      if (!mounted) return;
+      
+      setState(() {
+        _videos.addAll(videos);
+        _isInitialLoad = false;
+      });
+
+      if (_videos.isNotEmpty && widget.onVideoChanged != null) {
+        final initialIndex = widget.initialIndex ?? 0;
+        widget.onVideoChanged!(_videos[initialIndex]);
       }
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _lastError = e.toString();
-          _isInitialLoad = false;
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        _lastError = e.toString();
+        _isInitialLoad = false;
+      });
     }
   }
 

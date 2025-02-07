@@ -137,22 +137,30 @@ class SavedVideosFeedController extends VideoFeedController {
     _hasMore = true;
     _currentVideo = null;
     
-    // First fetch the latest videos from the collection
-    await fetchVideos();
+    // First ensure the videos are loaded
+    final videos = await fetchVideos();
     
     // Then get the first page
-    return getNextPage(null, 10);
+    return videos.isNotEmpty ? videos : getNextPage(null, 10);
   }
 
   Future<List<Video>> fetchVideos() async {
-    // First ensure the videos are loaded
-    switch (collectionType) {
-      case CollectionType.liked:
-        await _collectionManager.fetchLikedVideos(_userId);
-        return _collectionManager.likedVideos;
-      case CollectionType.saved:
-        await _collectionManager.fetchSavedVideos(_userId);
-        return _collectionManager.savedVideos;
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      // Get the videos based on collection type
+      switch (collectionType) {
+        case CollectionType.liked:
+          await _collectionManager.fetchLikedVideos(_userId);
+          return _collectionManager.likedVideos;
+        case CollectionType.saved:
+          await _collectionManager.fetchSavedVideos(_userId);
+          return _collectionManager.savedVideos;
+      }
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
