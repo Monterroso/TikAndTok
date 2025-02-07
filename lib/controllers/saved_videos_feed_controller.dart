@@ -29,7 +29,7 @@ class SavedVideosFeedController extends VideoFeedController {
        _collectionManager = collectionManager,
        _firestoreService = firestoreService ?? FirestoreService(),
        super(
-         feedTitle: 'Saved Videos',
+         feedTitle: collectionType.label,
          showBackButton: true,
          collectionManager: collectionManager,
        );
@@ -44,10 +44,12 @@ class SavedVideosFeedController extends VideoFeedController {
       _isLoading = true;
       notifyListeners();
 
-      // Get saved videos from cache
-      final savedVideoIds = _collectionManager.getSavedVideoIds(_userId);
+      // Get video IDs based on collection type
+      final videoIds = collectionType == CollectionType.liked
+        ? _collectionManager.getLikedVideoIds(_userId)
+        : _collectionManager.getSavedVideoIds(_userId);
       
-      if (savedVideoIds.isEmpty) {
+      if (videoIds.isEmpty) {
         _hasMore = false;
         return [];
       }
@@ -63,17 +65,17 @@ class SavedVideosFeedController extends VideoFeedController {
             .get();
       }
 
-      // Get the next batch of videos that are in the savedVideoIds set
+      // Get the next batch of videos that are in the videoIds set
       if (_lastDocument != null) {
         videos = await _firestoreService.getNextFilteredVideos(
           lastVideo: _lastDocument!,
           limit: pageSize,
-          filterIds: savedVideoIds,
+          filterIds: videoIds,
         );
       } else {
         // If no last document, start from the beginning
         videos = await _firestoreService.getVideosByIds(
-          videoIds: savedVideoIds.take(pageSize).toList(),
+          videoIds: videoIds.take(pageSize).toList(),
         );
       }
 
@@ -91,7 +93,7 @@ class SavedVideosFeedController extends VideoFeedController {
 
       return videos;
     } catch (e) {
-      _error = 'Failed to load saved videos: $e';
+      _error = 'Failed to load ${collectionType.label.toLowerCase()} videos: $e';
       return [];
     } finally {
       _isLoading = false;
@@ -107,8 +109,10 @@ class SavedVideosFeedController extends VideoFeedController {
 
   @override
   bool shouldKeepVideo(Video video) {
-    // Only keep videos that are still saved
-    return _collectionManager.isVideoSaved(video.id);
+    // Keep video based on collection type
+    return collectionType == CollectionType.liked
+      ? _collectionManager.isVideoLiked(video.id)
+      : _collectionManager.isVideoSaved(video.id);
   }
 
   @override
