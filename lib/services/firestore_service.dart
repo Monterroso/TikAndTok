@@ -50,7 +50,6 @@ class FirestoreService {
   Future<void> createUserProfile({
     required String uid,
     required String email,
-    String? displayName,
     String? username,
     String? photoURL,
   }) async {
@@ -64,8 +63,7 @@ class FirestoreService {
       
       final userData = {
         'email': email,
-        'username': uniqueUsername,
-        'displayName': displayName ?? uniqueUsername,
+        'username': uniqueUsername.toLowerCase(), // Store username in lowercase for case-insensitive matching
         'photoURL': photoURL ?? '',
         'bio': '',
         'createdAt': FieldValue.serverTimestamp(),
@@ -117,7 +115,6 @@ class FirestoreService {
   /// Use FirebaseStorageService for handling profile picture uploads.
   Future<void> updateUserProfile({
     required String uid,
-    String? displayName,
     String? username,
     String? photoURL,
     String? bio,
@@ -146,7 +143,6 @@ class FirestoreService {
         'updatedAt': FieldValue.serverTimestamp(),
       };
       
-      if (displayName != null) updates['displayName'] = displayName;
       if (username != null) updates['username'] = username;
       if (photoURL != null) updates['photoURL'] = photoURL;
       if (bio != null) updates['bio'] = bio;
@@ -623,26 +619,28 @@ class FirestoreService {
     }
   }
 
-  /// Searches for users by displayName
+  /// Searches for users by username
   Future<List<Map<String, dynamic>>> searchUsers(String query, {DocumentSnapshot? startAfter, int limit = 10}) async {
     try {
-      Query<Map<String, dynamic>> searchQuery = _usersCollection
-          .orderBy('displayName')
-          .where('displayName', isGreaterThanOrEqualTo: query)
-          .where('displayName', isLessThan: query + '\uf8ff')
+      // Create query for username search
+      Query<Map<String, dynamic>> usernameQuery = _usersCollection
+          .orderBy('username')
+          .where('username', isGreaterThanOrEqualTo: query.toLowerCase())
+          .where('username', isLessThan: query.toLowerCase() + '\uf8ff')
           .limit(limit);
 
       if (startAfter != null) {
-        searchQuery = searchQuery.startAfterDocument(startAfter);
+        usernameQuery = usernameQuery.startAfterDocument(startAfter);
       }
 
-      final querySnapshot = await searchQuery.get();
-      return querySnapshot.docs
-          .map((doc) => {
-                'id': doc.id,
-                ...doc.data(),
-              })
-          .toList();
+      // Execute query
+      final querySnapshot = await usernameQuery.get();
+      
+      // Map results to include document ID
+      return querySnapshot.docs.map((doc) => {
+        'id': doc.id,
+        ...doc.data(),
+      }).toList();
     } catch (e) {
       debugPrint('Error searching users: $e');
       throw 'Failed to search users: $e';

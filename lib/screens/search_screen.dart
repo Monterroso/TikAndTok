@@ -51,24 +51,43 @@ class SearchScreen extends StatelessWidget {
 class _SearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: TextField(
-        decoration: InputDecoration(
-          hintText: 'Search videos and users...',
-          prefixIcon: const Icon(Icons.search),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 15,
-          ),
-        ),
-        onChanged: (query) {
-          context.read<SearchController>().search(query);
-        },
-      ),
+    return Consumer<SearchController>(
+      builder: (context, controller, _) {
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Search videos and users...',
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 15,
+                  ),
+                ),
+                onChanged: (query) {
+                  context.read<SearchController>().search(query.toLowerCase());
+                },
+              ),
+            ),
+            if (controller.state.query.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Text(
+                  'Searching for: "${controller.state.query}"',
+                  style: const TextStyle(
+                    color: Colors.grey,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }
@@ -227,7 +246,7 @@ class _UserCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 80,
+      width: 100,
       margin: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Column(
         children: [
@@ -240,13 +259,17 @@ class _UserCard extends StatelessWidget {
                 ? const Icon(Icons.person)
                 : null,
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 8),
           Text(
-            user['displayName'] ?? 'User',
+            '@${user['username'] ?? 'User'}',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 12),
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.2,
+            ),
           ),
         ],
       ),

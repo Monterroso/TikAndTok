@@ -225,6 +225,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     controller: _usernameController,
                     decoration: const InputDecoration(
                       labelText: 'Username',
+                      prefixText: '@',
                       border: OutlineInputBorder(),
                     ),
                     validator: (value) {
@@ -241,6 +242,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         return 'Username can only contain letters, numbers, and underscores';
                       }
                       return null;
+                    },
+                    onChanged: (value) {
+                      // Store the value in lowercase
+                      _usernameController.text = value.toLowerCase();
+                      _usernameController.selection = TextSelection.fromPosition(
+                        TextPosition(offset: _usernameController.text.length),
+                      );
                     },
                   ),
                   const SizedBox(height: 16),
