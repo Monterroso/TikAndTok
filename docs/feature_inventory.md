@@ -48,6 +48,9 @@ This document tracks all implemented and planned features for the application. I
       - Profile picture with fallback
       - Username/display name
       - Video title and description
+    - Added pagination support
+    - Added loading states and error handling
+    - Implemented scroll position memory
   - [✓] Implement video playback  
     *Location:* `lib/widgets/video_viewing/video_background.dart`
     - Added video player with auto-play and looping

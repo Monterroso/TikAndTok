@@ -491,30 +491,30 @@ class FirestoreService {
   }
 
   /// Fetches videos by their IDs
+  /// Used for liked/saved video feeds where we have a list of IDs
   Future<List<Video>> getVideosByIds({
     required List<String> videoIds,
   }) async {
-    if (videoIds.isEmpty) return [];
-    
     try {
-      // Firestore limits batched reads to 10 documents at a time
-      const batchSize = 10;
+      if (videoIds.isEmpty) return [];
+
+      // Firestore has a limit of 10 items for 'whereIn' queries
+      // So we need to batch our requests if we have more than 10 IDs
       final batches = <Future<List<Video>>>[];
-      
-      for (var i = 0; i < videoIds.length; i += batchSize) {
-        final end = (i + batchSize < videoIds.length) ? i + batchSize : videoIds.length;
-        final batchIds = videoIds.sublist(i, end);
+      for (var i = 0; i < videoIds.length; i += 10) {
+        final end = (i + 10 < videoIds.length) ? i + 10 : videoIds.length;
+        final batch = videoIds.sublist(i, end);
         
-        final batch = _videosCollection
-          .where(FieldPath.documentId, whereIn: batchIds)
-          .get()
-          .then((snapshot) => 
-            snapshot.docs.map((doc) => Video.fromFirestore(doc)).toList()
-          );
-          
-        batches.add(batch);
+        batches.add(
+          _videosCollection
+            .where(FieldPath.documentId, whereIn: batch)
+            .get()
+            .then((snapshot) => 
+              snapshot.docs.map((doc) => Video.fromFirestore(doc)).toList()
+            )
+        );
       }
-      
+
       final results = await Future.wait(batches);
       return results.expand((videos) => videos).toList();
     } catch (e) {
@@ -522,31 +522,28 @@ class FirestoreService {
     }
   }
 
-  /// Fetches the next batch of videos after the last video, filtered by a set of IDs
+  /// Fetches the next batch of filtered videos after the last video
+  /// Used for paginated liked/saved video feeds
   Future<List<Video>> getNextFilteredVideos({
     required DocumentSnapshot lastVideo,
+    required Set<String> filterIds,
     int limit = 10,
-    Set<String>? filterIds,
   }) async {
     try {
-      var query = _videosCollection
+      if (filterIds.isEmpty) return [];
+
+      final querySnapshot = await _videosCollection
         .orderBy('createdAt', descending: true)
         .startAfterDocument(lastVideo)
-        .limit(limit);
-
-      if (filterIds != null && filterIds.isNotEmpty) {
-        // Convert the set to a list for the whereIn clause
-        final filterIdsList = filterIds.toList();
-        query = query.where(FieldPath.documentId, whereIn: filterIdsList);
-      }
-
-      final querySnapshot = await query.get();
+        .where(FieldPath.documentId, whereIn: filterIds.take(limit).toList())
+        .limit(limit)
+        .get();
 
       return querySnapshot.docs
         .map((doc) => Video.fromFirestore(doc))
         .toList();
     } catch (e) {
-      throw 'Failed to fetch next videos: $e';
+      throw 'Failed to fetch filtered videos: $e';
     }
   }
 }
