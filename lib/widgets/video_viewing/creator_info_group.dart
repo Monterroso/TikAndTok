@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/video.dart';
 import '../../services/firestore_service.dart';
+import '../../screens/user_profile_screen.dart';
 
 /// CreatorInfoGroup shows details about the video creator such as profile picture,
 /// follow button, username, and video title. It is positioned at the bottom-left.
@@ -18,6 +20,14 @@ class CreatorInfoGroup extends StatelessWidget {
     if (video == null) {
       return const _LoadingCreatorInfo();
     }
+
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUserId == null) {
+      return const SizedBox.shrink();
+    }
+
+    // Don't show follow button on own videos
+    final isOwnVideo = currentUserId == video!.userId;
 
     return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
       stream: FirestoreService().streamUserProfile(video!.userId),
@@ -45,27 +55,87 @@ class CreatorInfoGroup extends StatelessWidget {
           children: [
             Row(
               children: [
-                CircleAvatar(
-                  radius: 24.0,
-                  backgroundImage: userData['photoURL']?.isNotEmpty == true
-                      ? NetworkImage(userData['photoURL']!)
-                      : null,
-                  backgroundColor: Colors.grey[800],
-                  child: userData['photoURL']?.isNotEmpty != true
-                      ? const Icon(Icons.person, color: Colors.white70)
-                      : null,
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => UserProfileScreen(
+                          userId: video!.userId,
+                        ),
+                      ),
+                    );
+                  },
+                  child: CircleAvatar(
+                    radius: 24.0,
+                    backgroundImage: userData['photoURL']?.isNotEmpty == true
+                        ? NetworkImage(userData['photoURL']!)
+                        : null,
+                    backgroundColor: Colors.grey[800],
+                    child: userData['photoURL']?.isNotEmpty != true
+                        ? const Icon(Icons.person, color: Colors.white70)
+                        : null,
+                  ),
                 ),
                 const SizedBox(width: 8.0),
-                ElevatedButton(
-                  onPressed: () {
-                    // TODO: Implement follow functionality
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white.withOpacity(0.2),
-                    foregroundColor: Colors.white,
+                if (!isOwnVideo) ...[
+                  StreamBuilder<bool>(
+                    stream: Stream.fromFuture(
+                      FirestoreService().isFollowing(
+                        followerId: currentUserId,
+                        followedId: video!.userId,
+                      ),
+                    ),
+                    builder: (context, followSnapshot) {
+                      final isFollowing = followSnapshot.data ?? false;
+                      
+                      return ElevatedButton(
+                        onPressed: () async {
+                          try {
+                            await FirestoreService().toggleFollow(
+                              followerId: currentUserId,
+                              followedId: video!.userId,
+                            );
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Error: $e'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isFollowing 
+                            ? Colors.grey.withOpacity(0.3)
+                            : Colors.white.withOpacity(0.2),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(isFollowing ? 'Following' : 'Follow'),
+                            if (userData['followerCount'] != null) ...[
+                              const SizedBox(width: 4),
+                              Text(
+                                '${userData['followerCount']}',
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.7),
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      );
+                    },
                   ),
-                  child: const Text('Follow'),
-                ),
+                ],
               ],
             ),
             const SizedBox(height: 8.0),
