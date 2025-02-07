@@ -51,12 +51,21 @@ class FirestoreService {
     required String uid,
     required String email,
     String? displayName,
+    String? username,
     String? photoURL,
   }) async {
     try {
+      // Generate a default username if none provided
+      final defaultUsername = email.split('@')[0].replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
+      final baseUsername = username ?? defaultUsername;
+      
+      // Check if username exists and generate a unique one if needed
+      String uniqueUsername = await _generateUniqueUsername(baseUsername);
+      
       final userData = {
         'email': email,
-        'displayName': displayName ?? '',
+        'username': uniqueUsername,
+        'displayName': displayName ?? uniqueUsername,
         'photoURL': photoURL ?? '',
         'bio': '',
         'createdAt': FieldValue.serverTimestamp(),
@@ -67,6 +76,40 @@ class FirestoreService {
     } catch (e) {
       throw 'Failed to create user profile: $e';
     }
+  }
+
+  /// Generates a unique username by appending numbers if necessary
+  Future<String> _generateUniqueUsername(String baseUsername) async {
+    String username = baseUsername;
+    int counter = 1;
+    bool isUnique = false;
+
+    while (!isUnique) {
+      // Check if username exists
+      final query = await _usersCollection
+          .where('username', isEqualTo: username)
+          .limit(1)
+          .get();
+
+      if (query.docs.isEmpty) {
+        isUnique = true;
+      } else {
+        // If username exists, append number and try again
+        username = '$baseUsername$counter';
+        counter++;
+      }
+    }
+
+    return username;
+  }
+
+  /// Checks if a username is available
+  Future<bool> isUsernameAvailable(String username) async {
+    final query = await _usersCollection
+        .where('username', isEqualTo: username)
+        .limit(1)
+        .get();
+    return query.docs.isEmpty;
   }
 
   /// Updates specific fields of a user document
@@ -84,7 +127,16 @@ class FirestoreService {
       if (username != null) {
         final nameError = validateUsername(username);
         if (nameError != null) throw nameError;
+        
+        // Check if username is available (unless it's the same as current)
+        final currentProfile = await getUserProfile(uid);
+        if (currentProfile != null && 
+            currentProfile['username'] != username && 
+            !(await isUsernameAvailable(username))) {
+          throw 'Username is already taken';
+        }
       }
+      
       if (bio != null) {
         final bioError = validateBio(bio);
         if (bioError != null) throw bioError;

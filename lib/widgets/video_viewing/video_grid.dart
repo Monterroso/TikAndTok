@@ -77,22 +77,23 @@ class VideoGrid extends StatelessWidget {
       );
     }
 
-    return GridView.builder(
-      padding: const EdgeInsets.all(8),
+    return SliverGrid(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         childAspectRatio: 9 / 16, // Video aspect ratio
         crossAxisSpacing: 8,
         mainAxisSpacing: 8,
       ),
-      itemCount: videos.length,
-      itemBuilder: (context, index) {
-        return VideoCard(
-          video: videos[index],
-          actionBuilder: actionBuilder,
-          onTap: onVideoTap != null ? () => onVideoTap!(videos[index], index) : null,
-        );
-      },
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          return VideoCard(
+            video: videos[index],
+            actionBuilder: actionBuilder,
+            onTap: onVideoTap != null ? () => onVideoTap!(videos[index], index) : null,
+          );
+        },
+        childCount: videos.length,
+      ),
     );
   }
 }
