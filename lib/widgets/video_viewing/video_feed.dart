@@ -3,6 +3,7 @@ import '../../models/video.dart';
 import '../../controllers/video_feed_controller.dart';
 import 'video_background.dart';
 import 'feed_header.dart';
+import 'video_removal_animation.dart';
 
 /// VideoFeed implements a vertically scrollable feed of videos.
 /// It uses PageView for smooth transitions and manages video loading.
@@ -28,9 +29,10 @@ class VideoFeed extends StatefulWidget {
   State<VideoFeed> createState() => _VideoFeedState();
 }
 
-class _VideoFeedState extends State<VideoFeed> {
+class _VideoFeedState extends State<VideoFeed> with TickerProviderStateMixin {
   late PageController _pageController;
   final List<Video> _videos = [];
+  final Map<String, bool> _removedVideos = {};
   int _currentPageIndex = 0;
   bool _isLoadingMore = false;
   bool _isInitialLoad = true;
@@ -104,21 +106,13 @@ class _VideoFeedState extends State<VideoFeed> {
   }
 
   void _onPageChanged(int index) async {
-    // Filter out any videos that should no longer be shown
-    final validVideos = _videos.where(
-      (video) => widget.controller.shouldKeepVideo(video)
-    ).toList();
-
-    if (validVideos.length != _videos.length) {
-      setState(() {
-        _videos.clear();
-        _videos.addAll(validVideos);
-      });
-      
-      // Adjust index if needed
-      if (index >= _videos.length) {
-        index = _videos.length - 1;
-        _pageController.jumpToPage(index);
+    // Check if the current video should be removed
+    if (_currentPageIndex < _videos.length) {
+      final currentVideo = _videos[_currentPageIndex];
+      if (!widget.controller.shouldKeepVideo(currentVideo)) {
+        setState(() {
+          _removedVideos[currentVideo.id] = true;
+        });
       }
     }
 
@@ -136,7 +130,16 @@ class _VideoFeedState extends State<VideoFeed> {
     }
 
     // Handle video interaction if needed
-    await widget.controller.onVideoInteraction(_videos[index]);
+    if (index < _videos.length) {
+      await widget.controller.onVideoInteraction(_videos[index]);
+    }
+  }
+
+  void _handleVideoRemovalComplete(String videoId) {
+    setState(() {
+      _videos.removeWhere((video) => video.id == videoId);
+      _removedVideos.remove(videoId);
+    });
   }
 
   void _handleDoubleTap() {
@@ -163,6 +166,22 @@ class _VideoFeedState extends State<VideoFeed> {
         message,
         style: const TextStyle(color: Colors.white),
         textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget _buildVideoItem(Video video, int index) {
+    final isRemoved = _removedVideos[video.id] ?? false;
+    
+    return VideoRemovalAnimation(
+      key: ValueKey(video.id),
+      isRemoved: isRemoved,
+      onRemovalComplete: () => _handleVideoRemovalComplete(video.id),
+      child: GestureDetector(
+        onDoubleTap: _handleDoubleTap,
+        child: VideoBackground(
+          videoUrl: video.url,
+        ),
       ),
     );
   }
@@ -194,15 +213,7 @@ class _VideoFeedState extends State<VideoFeed> {
                   controller: _pageController,
                   onPageChanged: _onPageChanged,
                   itemCount: _videos.length,
-                  itemBuilder: (context, index) {
-                    final video = _videos[index];
-                    return GestureDetector(
-                      onDoubleTap: _handleDoubleTap,
-                      child: VideoBackground(
-                        videoUrl: video.url,
-                      ),
-                    );
-                  },
+                  itemBuilder: (context, index) => _buildVideoItem(_videos[index], index),
                 ),
               if (_isLoadingMore)
                 Positioned(

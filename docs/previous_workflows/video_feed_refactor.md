@@ -61,8 +61,8 @@ abstract class VideoFeedController {
 1. **Extend Current VideoFeed**
    - [✓] Add pagination support to existing VideoFeed
    - [✓] Integrate with VideoCollectionManager
-   - [ ] Implement scroll position memory
-   - [ ] Add loading states for pagination
+   - [✓] Implement scroll position memory
+   - [✓] Add loading states for pagination
 
 2. **Create HomeFeedController** ✓
    - [✓] Implement pagination with Firestore
@@ -72,17 +72,20 @@ abstract class VideoFeedController {
 ### Phase 2: Liked Videos Feed (In Progress)
 
 1. **Create LikedVideosFeedController**
-   - [ ] Filter for liked videos using VideoCollectionManager
-   - [ ] Handle unlike actions
-   - [ ] Implement feedback messages
-   - [ ] Add header with back navigation
+   - [✓] Filter for liked videos using VideoCollectionManager
+   - [✓] Handle unlike actions
+   - [✓] Implement feedback messages
+   - [✓] Add header with back navigation
 
 2. **UI Components**
-   - [ ] Create FeedHeader for liked videos
-   - [ ] Handle video removal animations
-   - [ ] Implement smooth transitions
+   - [✓] Create FeedHeader for liked videos
+   - [✓] Handle video removal animations
+     - Added VideoRemovalAnimation component
+     - Implemented scale and fade animations
+     - Added smooth transitions
+   - [✓] Implement smooth transitions
 
-### Phase 3: Saved Videos Feed
+### Phase 3: Saved Videos Feed (Next Up)
 
 1. **Create SavedVideosFeedController**
    - [ ] Filter for saved videos using VideoCollectionManager
@@ -91,9 +94,9 @@ abstract class VideoFeedController {
    - [ ] Add header with back navigation
 
 2. **UI Components**
-   - [ ] Reuse FeedHeader component
-   - [ ] Handle video removal animations
-   - [ ] Implement smooth transitions
+   - [✓] Reuse FeedHeader component
+   - [✓] Handle video removal animations
+   - [✓] Implement smooth transitions
 
 ### Phase 4: Testing & Optimization
 
@@ -109,29 +112,32 @@ abstract class VideoFeedController {
    - [ ] Optimize memory usage
    - [ ] Handle edge cases
 
-## Current Status Update (Added)
+## Current Status Update
 
 1. **Completed**:
    - Base VideoFeedController abstract class
    - HomeFeedController with pagination
    - Initial test structure
    - Basic video feed integration with VideoCollectionManager
+   - Video removal animations and transitions
+   - FeedHeader component
+   - Loading states and error handling
 
 2. **In Progress**:
-   - LikedVideosFeedController implementation
-   - FeedHeader component design
-   - Pagination UI feedback
+   - SavedVideosFeedController implementation
+   - Widget tests for UI components
+   - Performance optimizations
 
 3. **Next Steps**:
-   - Complete LikedVideosFeedController
-   - Implement FeedHeader component
-   - Add loading states and animations
-   - Enhance error handling
+   - Implement SavedVideosFeedController
+   - Add widget tests for new components
+   - Add performance optimizations
+   - Handle edge cases
 
 4. **Known Issues**:
    - Firebase mocking in tests needs resolution
-   - Scroll position not persisting between feed switches
-   - Loading states need visual feedback
+   - Performance optimization needed for large video lists
+   - Need to implement video prefetching
 
 ## Success Criteria
 
