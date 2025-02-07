@@ -121,6 +121,14 @@ class MockVideoFeedController extends _i1.Mock
   );
 
   @override
+  _i5.Future<List<_i6.Video>> getInitialVideos() =>
+      (super.noSuchMethod(
+            Invocation.method(#getInitialVideos, []),
+            returnValue: _i5.Future<List<_i6.Video>>.value(<_i6.Video>[]),
+          )
+          as _i5.Future<List<_i6.Video>>);
+
+  @override
   void addListener(_i7.VoidCallback? listener) => super.noSuchMethod(
     Invocation.method(#addListener, [listener]),
     returnValueForMissingStub: null,

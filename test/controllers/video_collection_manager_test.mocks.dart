@@ -59,14 +59,14 @@ class MockFirestoreService extends _i1.Mock implements _i2.FirestoreService {
   _i3.Future<void> createUserProfile({
     required String? uid,
     required String? email,
-    String? displayName,
+    String? username,
     String? photoURL,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#createUserProfile, [], {
               #uid: uid,
               #email: email,
-              #displayName: displayName,
+              #username: username,
               #photoURL: photoURL,
             }),
             returnValue: _i3.Future<void>.value(),
@@ -75,9 +75,16 @@ class MockFirestoreService extends _i1.Mock implements _i2.FirestoreService {
           as _i3.Future<void>);
 
   @override
+  _i3.Future<bool> isUsernameAvailable(String? username) =>
+      (super.noSuchMethod(
+            Invocation.method(#isUsernameAvailable, [username]),
+            returnValue: _i3.Future<bool>.value(false),
+          )
+          as _i3.Future<bool>);
+
+  @override
   _i3.Future<void> updateUserProfile({
     required String? uid,
-    String? displayName,
     String? username,
     String? photoURL,
     String? bio,
@@ -85,7 +92,6 @@ class MockFirestoreService extends _i1.Mock implements _i2.FirestoreService {
       (super.noSuchMethod(
             Invocation.method(#updateUserProfile, [], {
               #uid: uid,
-              #displayName: displayName,
               #username: username,
               #photoURL: photoURL,
               #bio: bio,
