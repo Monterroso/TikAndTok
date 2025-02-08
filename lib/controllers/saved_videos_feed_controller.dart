@@ -157,6 +157,9 @@ class SavedVideosFeedController extends VideoFeedController {
         case CollectionType.saved:
           await _collectionManager.fetchSavedVideos(_userId);
           return _collectionManager.savedVideos;
+        case CollectionType.following:
+          await _collectionManager.fetchFollowingVideos(_userId);
+          return _collectionManager.followingVideos;
       }
     } finally {
       _isLoading = false;

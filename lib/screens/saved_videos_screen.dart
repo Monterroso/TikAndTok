@@ -21,6 +21,13 @@ enum CollectionType {
     label: 'Saved',
     emptyMessage: 'No saved videos yet',
     removeMessage: 'Removed from saved videos'
+  ),
+  following(
+    icon: Icons.people,
+    emptyIcon: Icons.people_outline,
+    label: 'Following',
+    emptyMessage: 'No videos from followed users',
+    removeMessage: 'User unfollowed'
   );
 
   final IconData icon;
@@ -44,6 +51,8 @@ enum CollectionType {
         return manager.likedVideos;
       case CollectionType.saved:
         return manager.savedVideos;
+      case CollectionType.following:
+        return manager.followingVideos;
     }
   }
 
@@ -54,6 +63,8 @@ enum CollectionType {
         return manager.isLoadingLiked;
       case CollectionType.saved:
         return manager.isLoadingSaved;
+      case CollectionType.following:
+        return manager.isLoadingFollowing;
     }
   }
 
@@ -66,6 +77,9 @@ enum CollectionType {
       case CollectionType.saved:
         manager.fetchSavedVideos(userId);
         break;
+      case CollectionType.following:
+        manager.fetchFollowingVideos(userId);
+        break;
     }
   }
 
@@ -76,6 +90,9 @@ enum CollectionType {
         return manager.toggleLikeVideo(videoId, userId);
       case CollectionType.saved:
         return manager.toggleSaveVideo(videoId, userId);
+      case CollectionType.following:
+        // For following tab, videoId is actually the creator's userId
+        return manager.toggleFollow(userId, videoId);
     }
   }
 }
@@ -103,6 +120,7 @@ class _SavedVideosScreenState extends State<SavedVideosScreen> with SingleTicker
       final manager = context.read<VideoCollectionManager>();
       manager.fetchLikedVideos(_currentUserId);
       manager.fetchSavedVideos(_currentUserId);
+      manager.fetchFollowingVideos(_currentUserId);
     });
   }
 
@@ -145,7 +163,7 @@ class _SavedVideosScreenState extends State<SavedVideosScreen> with SingleTicker
           },
           emptyStateMessage: type.emptyMessage,
           emptyStateIcon: type.emptyIcon,
-          actionBuilder: (video) => Container(
+          actionBuilder: type == CollectionType.following ? null : (video) => Container(
             decoration: BoxDecoration(
               color: Colors.black54,
               borderRadius: BorderRadius.circular(16),

@@ -18,18 +18,22 @@ class VideoCollectionManager extends ChangeNotifier {
   bool _isLoading = false;
   bool _isLoadingLiked = false;
   bool _isLoadingSaved = false;
+  bool _isLoadingFollowing = false;
   
   // Video collections
   List<Video> _likedVideos = [];
   List<Video> _savedVideos = [];
+  List<Video> _followingVideos = [];
   
   // Getters
   String? get error => _error;
   bool get isLoading => _isLoading;
   bool get isLoadingLiked => _isLoadingLiked;
   bool get isLoadingSaved => _isLoadingSaved;
+  bool get isLoadingFollowing => _isLoadingFollowing;
   List<Video> get likedVideos => List.unmodifiable(_likedVideos);
   List<Video> get savedVideos => List.unmodifiable(_savedVideos);
+  List<Video> get followingVideos => List.unmodifiable(_followingVideos);
 
   VideoCollectionManager({
     FirestoreService? firestoreService,
@@ -384,6 +388,36 @@ class VideoCollectionManager extends ChangeNotifier {
     }
   }
 
+  /// Fetches following videos for a user
+  Future<void> fetchFollowingVideos(String userId) async {
+    if (_isLoadingFollowing) return;
+
+    try {
+      _isLoadingFollowing = true;
+      _error = null;
+      notifyListeners();
+
+      final videos = await _firestoreService.getFollowingVideos(userId);
+      _followingVideos = videos;
+      
+      // Update video states
+      for (final video in videos) {
+        _cache.put(VideoState(
+          videoId: video.id,
+          lastUpdated: DateTime.now(),
+          isLiked: video.isLikedByUser(userId),
+          isSaved: video.isSavedByUser(userId),
+          videoData: video,
+        ));
+      }
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoadingFollowing = false;
+      notifyListeners();
+    }
+  }
+
   /// Cleans up old states and performs maintenance
   Future<void> cleanup() async {
     try {
@@ -451,5 +485,22 @@ class VideoCollectionManager extends ChangeNotifier {
   bool isVideoSaved(String videoId) {
     final state = getCachedVideoState(videoId);
     return state?.isSaved ?? false;
+  }
+
+  /// Toggles the follow status of a user
+  Future<void> toggleFollow(String userId, String creatorId) async {
+    try {
+      await _firestoreService.toggleFollow(
+        followerId: userId,
+        followedId: creatorId,
+      );
+      
+      // Refresh following videos after toggling follow
+      await fetchFollowingVideos(userId);
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      rethrow;
+    }
   }
 } 

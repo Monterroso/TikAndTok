@@ -755,4 +755,49 @@ class FirestoreService {
   Future<DocumentSnapshot<Map<String, dynamic>>> getVideoDocument(String videoId) async {
     return await _videosCollection.doc(videoId).get();
   }
+
+  /// Gets a list of user IDs that the specified user follows
+  Future<List<String>> getFollowedUserIds(String userId) async {
+    final querySnapshot = await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('following')
+        .orderBy('timestamp', descending: true)
+        .limit(50)
+        .get();
+
+    return querySnapshot.docs.map((doc) => doc.id).toList();
+  }
+
+  /// Gets videos from users that the specified user follows
+  Future<List<Video>> getFollowingVideos(
+    String userId, {
+    DocumentSnapshot? startAfter,
+    int limit = 10,
+  }) async {
+    try {
+      final followedUserIds = await getFollowedUserIds(userId);
+      
+      if (followedUserIds.isEmpty) {
+        return [];
+      }
+
+      Query query = _videosCollection
+          .where('userId', whereIn: followedUserIds)
+          .orderBy('createdAt', descending: true)
+          .limit(limit);
+
+      if (startAfter != null) {
+        query = query.startAfterDocument(startAfter);
+      }
+
+      final querySnapshot = await query.get();
+      return querySnapshot.docs
+          .map((doc) => Video.fromFirestore(doc))
+          .toList();
+    } catch (e) {
+      debugPrint('Error getting following videos: $e');
+      rethrow;
+    }
+  }
 }
