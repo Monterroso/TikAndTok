@@ -25,6 +25,7 @@ mixin _$Video {
   String get userId => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
   String get description => throw _privateConstructorUsedError;
+  String? get thumbnailUrl => throw _privateConstructorUsedError;
   int get likes => throw _privateConstructorUsedError;
   int get comments => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
@@ -52,6 +53,7 @@ abstract class $VideoCopyWith<$Res> {
       String userId,
       String title,
       String description,
+      String? thumbnailUrl,
       int likes,
       int comments,
       DateTime createdAt,
@@ -80,6 +82,7 @@ class _$VideoCopyWithImpl<$Res, $Val extends Video>
     Object? userId = null,
     Object? title = null,
     Object? description = null,
+    Object? thumbnailUrl = freezed,
     Object? likes = null,
     Object? comments = null,
     Object? createdAt = null,
@@ -108,6 +111,10 @@ class _$VideoCopyWithImpl<$Res, $Val extends Video>
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
               as String,
+      thumbnailUrl: freezed == thumbnailUrl
+          ? _value.thumbnailUrl
+          : thumbnailUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
       likes: null == likes
           ? _value.likes
           : likes // ignore: cast_nullable_to_non_nullable
@@ -149,6 +156,7 @@ abstract class _$$VideoImplCopyWith<$Res> implements $VideoCopyWith<$Res> {
       String userId,
       String title,
       String description,
+      String? thumbnailUrl,
       int likes,
       int comments,
       DateTime createdAt,
@@ -175,6 +183,7 @@ class __$$VideoImplCopyWithImpl<$Res>
     Object? userId = null,
     Object? title = null,
     Object? description = null,
+    Object? thumbnailUrl = freezed,
     Object? likes = null,
     Object? comments = null,
     Object? createdAt = null,
@@ -203,6 +212,10 @@ class __$$VideoImplCopyWithImpl<$Res>
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
               as String,
+      thumbnailUrl: freezed == thumbnailUrl
+          ? _value.thumbnailUrl
+          : thumbnailUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
       likes: null == likes
           ? _value.likes
           : likes // ignore: cast_nullable_to_non_nullable
@@ -240,6 +253,7 @@ class _$VideoImpl extends _Video with DiagnosticableTreeMixin {
       required this.userId,
       required this.title,
       required this.description,
+      this.thumbnailUrl,
       this.likes = 0,
       this.comments = 0,
       required this.createdAt,
@@ -264,6 +278,8 @@ class _$VideoImpl extends _Video with DiagnosticableTreeMixin {
   final String title;
   @override
   final String description;
+  @override
+  final String? thumbnailUrl;
   @override
   @JsonKey()
   final int likes;
@@ -302,7 +318,7 @@ class _$VideoImpl extends _Video with DiagnosticableTreeMixin {
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'Video(id: $id, url: $url, userId: $userId, title: $title, description: $description, likes: $likes, comments: $comments, createdAt: $createdAt, metadata: $metadata, likedBy: $likedBy, savedBy: $savedBy)';
+    return 'Video(id: $id, url: $url, userId: $userId, title: $title, description: $description, thumbnailUrl: $thumbnailUrl, likes: $likes, comments: $comments, createdAt: $createdAt, metadata: $metadata, likedBy: $likedBy, savedBy: $savedBy)';
   }
 
   @override
@@ -315,6 +331,7 @@ class _$VideoImpl extends _Video with DiagnosticableTreeMixin {
       ..add(DiagnosticsProperty('userId', userId))
       ..add(DiagnosticsProperty('title', title))
       ..add(DiagnosticsProperty('description', description))
+      ..add(DiagnosticsProperty('thumbnailUrl', thumbnailUrl))
       ..add(DiagnosticsProperty('likes', likes))
       ..add(DiagnosticsProperty('comments', comments))
       ..add(DiagnosticsProperty('createdAt', createdAt))
@@ -334,6 +351,8 @@ class _$VideoImpl extends _Video with DiagnosticableTreeMixin {
             (identical(other.title, title) || other.title == title) &&
             (identical(other.description, description) ||
                 other.description == description) &&
+            (identical(other.thumbnailUrl, thumbnailUrl) ||
+                other.thumbnailUrl == thumbnailUrl) &&
             (identical(other.likes, likes) || other.likes == likes) &&
             (identical(other.comments, comments) ||
                 other.comments == comments) &&
@@ -353,6 +372,7 @@ class _$VideoImpl extends _Video with DiagnosticableTreeMixin {
       userId,
       title,
       description,
+      thumbnailUrl,
       likes,
       comments,
       createdAt,
@@ -383,6 +403,7 @@ abstract class _Video extends Video {
       required final String userId,
       required final String title,
       required final String description,
+      final String? thumbnailUrl,
       final int likes,
       final int comments,
       required final DateTime createdAt,
@@ -403,6 +424,8 @@ abstract class _Video extends Video {
   String get title;
   @override
   String get description;
+  @override
+  String? get thumbnailUrl;
   @override
   int get likes;
   @override

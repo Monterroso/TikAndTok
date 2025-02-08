@@ -3,12 +3,12 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i3;
+import 'dart:async' as _i4;
 
-import 'package:cloud_firestore/cloud_firestore.dart' as _i4;
+import 'package:cloud_firestore/cloud_firestore.dart' as _i2;
 import 'package:flutter_application_1/models/comment.dart' as _i7;
 import 'package:flutter_application_1/models/video.dart' as _i5;
-import 'package:flutter_application_1/services/firestore_service.dart' as _i2;
+import 'package:flutter_application_1/services/firestore_service.dart' as _i3;
 import 'package:flutter_application_1/state/video_state.dart' as _i9;
 import 'package:flutter_application_1/state/video_state_storage.dart' as _i8;
 import 'package:mockito/mockito.dart' as _i1;
@@ -28,35 +28,41 @@ import 'package:mockito/src/dummies.dart' as _i6;
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
+class _FakeDocumentSnapshot_0<T extends Object?> extends _i1.SmartFake
+    implements _i2.DocumentSnapshot<T> {
+  _FakeDocumentSnapshot_0(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
 /// A class which mocks [FirestoreService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockFirestoreService extends _i1.Mock implements _i2.FirestoreService {
+class MockFirestoreService extends _i1.Mock implements _i3.FirestoreService {
   MockFirestoreService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i3.Stream<_i4.DocumentSnapshot<Map<String, dynamic>>> streamUserProfile(
+  _i4.Stream<_i2.DocumentSnapshot<Map<String, dynamic>>> streamUserProfile(
     String? uid,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#streamUserProfile, [uid]),
             returnValue:
-                _i3.Stream<_i4.DocumentSnapshot<Map<String, dynamic>>>.empty(),
+                _i4.Stream<_i2.DocumentSnapshot<Map<String, dynamic>>>.empty(),
           )
-          as _i3.Stream<_i4.DocumentSnapshot<Map<String, dynamic>>>);
+          as _i4.Stream<_i2.DocumentSnapshot<Map<String, dynamic>>>);
 
   @override
-  _i3.Future<Map<String, dynamic>?> getUserProfile(String? uid) =>
+  _i4.Future<Map<String, dynamic>?> getUserProfile(String? uid) =>
       (super.noSuchMethod(
             Invocation.method(#getUserProfile, [uid]),
-            returnValue: _i3.Future<Map<String, dynamic>?>.value(),
+            returnValue: _i4.Future<Map<String, dynamic>?>.value(),
           )
-          as _i3.Future<Map<String, dynamic>?>);
+          as _i4.Future<Map<String, dynamic>?>);
 
   @override
-  _i3.Future<void> createUserProfile({
+  _i4.Future<void> createUserProfile({
     required String? uid,
     required String? email,
     String? username,
@@ -69,21 +75,21 @@ class MockFirestoreService extends _i1.Mock implements _i2.FirestoreService {
               #username: username,
               #photoURL: photoURL,
             }),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
 
   @override
-  _i3.Future<bool> isUsernameAvailable(String? username) =>
+  _i4.Future<bool> isUsernameAvailable(String? username) =>
       (super.noSuchMethod(
             Invocation.method(#isUsernameAvailable, [username]),
-            returnValue: _i3.Future<bool>.value(false),
+            returnValue: _i4.Future<bool>.value(false),
           )
-          as _i3.Future<bool>);
+          as _i4.Future<bool>);
 
   @override
-  _i3.Future<void> updateUserProfile({
+  _i4.Future<void> updateUserProfile({
     required String? uid,
     String? username,
     String? photoURL,
@@ -96,10 +102,10 @@ class MockFirestoreService extends _i1.Mock implements _i2.FirestoreService {
               #photoURL: photoURL,
               #bio: bio,
             }),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
 
   @override
   String? validateUsername(String? username) =>
@@ -111,16 +117,16 @@ class MockFirestoreService extends _i1.Mock implements _i2.FirestoreService {
       (super.noSuchMethod(Invocation.method(#validateBio, [bio])) as String?);
 
   @override
-  _i3.Stream<List<_i5.Video>> streamVideos({int? limit = 10}) =>
+  _i4.Stream<List<_i5.Video>> streamVideos({int? limit = 10}) =>
       (super.noSuchMethod(
             Invocation.method(#streamVideos, [], {#limit: limit}),
-            returnValue: _i3.Stream<List<_i5.Video>>.empty(),
+            returnValue: _i4.Stream<List<_i5.Video>>.empty(),
           )
-          as _i3.Stream<List<_i5.Video>>);
+          as _i4.Stream<List<_i5.Video>>);
 
   @override
-  _i3.Future<List<_i5.Video>> getNextVideos({
-    required _i4.DocumentSnapshot<Object?>? lastVideo,
+  _i4.Future<List<_i5.Video>> getNextVideos({
+    required _i2.DocumentSnapshot<Object?>? lastVideo,
     int? limit = 10,
   }) =>
       (super.noSuchMethod(
@@ -128,12 +134,12 @@ class MockFirestoreService extends _i1.Mock implements _i2.FirestoreService {
               #lastVideo: lastVideo,
               #limit: limit,
             }),
-            returnValue: _i3.Future<List<_i5.Video>>.value(<_i5.Video>[]),
+            returnValue: _i4.Future<List<_i5.Video>>.value(<_i5.Video>[]),
           )
-          as _i3.Future<List<_i5.Video>>);
+          as _i4.Future<List<_i5.Video>>);
 
   @override
-  _i3.Future<String> createVideo({
+  _i4.Future<String> createVideo({
     required String? userId,
     required String? url,
     required String? title,
@@ -148,7 +154,7 @@ class MockFirestoreService extends _i1.Mock implements _i2.FirestoreService {
               #description: description,
               #metadata: metadata,
             }),
-            returnValue: _i3.Future<String>.value(
+            returnValue: _i4.Future<String>.value(
               _i6.dummyValue<String>(
                 this,
                 Invocation.method(#createVideo, [], {
@@ -161,10 +167,10 @@ class MockFirestoreService extends _i1.Mock implements _i2.FirestoreService {
               ),
             ),
           )
-          as _i3.Future<String>);
+          as _i4.Future<String>);
 
   @override
-  _i3.Future<void> updateVideoStats({
+  _i4.Future<void> updateVideoStats({
     required String? videoId,
     int? likes,
     int? comments,
@@ -175,13 +181,13 @@ class MockFirestoreService extends _i1.Mock implements _i2.FirestoreService {
               #likes: likes,
               #comments: comments,
             }),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
 
   @override
-  _i3.Future<void> toggleLike({
+  _i4.Future<void> toggleLike({
     required String? videoId,
     required String? userId,
   }) =>
@@ -190,25 +196,25 @@ class MockFirestoreService extends _i1.Mock implements _i2.FirestoreService {
               #videoId: videoId,
               #userId: userId,
             }),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
 
   @override
-  _i3.Stream<_i4.DocumentSnapshot<Map<String, dynamic>>> streamVideoDocument(
+  _i4.Stream<_i2.DocumentSnapshot<Map<String, dynamic>>> streamVideoDocument(
     String? videoId,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#streamVideoDocument, [videoId]),
             returnValue:
-                _i3.Stream<_i4.DocumentSnapshot<Map<String, dynamic>>>.empty(),
+                _i4.Stream<_i2.DocumentSnapshot<Map<String, dynamic>>>.empty(),
           )
-          as _i3.Stream<_i4.DocumentSnapshot<Map<String, dynamic>>>);
+          as _i4.Stream<_i2.DocumentSnapshot<Map<String, dynamic>>>);
 
   @override
   Set<String> getLikedByFromDoc(
-    _i4.DocumentSnapshot<Map<String, dynamic>>? doc,
+    _i2.DocumentSnapshot<Map<String, dynamic>>? doc,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#getLikedByFromDoc, [doc]),
@@ -218,7 +224,7 @@ class MockFirestoreService extends _i1.Mock implements _i2.FirestoreService {
 
   @override
   Map<String, dynamic> getStatsFromDoc(
-    _i4.DocumentSnapshot<Map<String, dynamic>>? doc,
+    _i2.DocumentSnapshot<Map<String, dynamic>>? doc,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#getStatsFromDoc, [doc]),
@@ -227,15 +233,15 @@ class MockFirestoreService extends _i1.Mock implements _i2.FirestoreService {
           as Map<String, dynamic>);
 
   @override
-  _i3.Stream<List<_i7.Comment>> streamComments({required String? videoId}) =>
+  _i4.Stream<List<_i7.Comment>> streamComments({required String? videoId}) =>
       (super.noSuchMethod(
             Invocation.method(#streamComments, [], {#videoId: videoId}),
-            returnValue: _i3.Stream<List<_i7.Comment>>.empty(),
+            returnValue: _i4.Stream<List<_i7.Comment>>.empty(),
           )
-          as _i3.Stream<List<_i7.Comment>>);
+          as _i4.Stream<List<_i7.Comment>>);
 
   @override
-  _i3.Future<void> addComment({
+  _i4.Future<void> addComment({
     required String? videoId,
     required String? userId,
     required String? message,
@@ -246,13 +252,13 @@ class MockFirestoreService extends _i1.Mock implements _i2.FirestoreService {
               #userId: userId,
               #message: message,
             }),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
 
   @override
-  _i3.Future<void> deleteComment({
+  _i4.Future<void> deleteComment({
     required String? videoId,
     required String? commentId,
     required String? userId,
@@ -263,14 +269,14 @@ class MockFirestoreService extends _i1.Mock implements _i2.FirestoreService {
               #commentId: commentId,
               #userId: userId,
             }),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
 
   @override
   Set<String> getSavedByFromDoc(
-    _i4.DocumentSnapshot<Map<String, dynamic>>? doc,
+    _i2.DocumentSnapshot<Map<String, dynamic>>? doc,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#getSavedByFromDoc, [doc]),
@@ -279,7 +285,7 @@ class MockFirestoreService extends _i1.Mock implements _i2.FirestoreService {
           as Set<String>);
 
   @override
-  _i3.Future<void> toggleSave({
+  _i4.Future<void> toggleSave({
     required String? videoId,
     required String? userId,
   }) =>
@@ -288,56 +294,56 @@ class MockFirestoreService extends _i1.Mock implements _i2.FirestoreService {
               #videoId: videoId,
               #userId: userId,
             }),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
 
   @override
-  _i3.Stream<List<_i5.Video>> streamSavedVideos({required String? userId}) =>
+  _i4.Stream<List<_i5.Video>> streamSavedVideos({required String? userId}) =>
       (super.noSuchMethod(
             Invocation.method(#streamSavedVideos, [], {#userId: userId}),
-            returnValue: _i3.Stream<List<_i5.Video>>.empty(),
+            returnValue: _i4.Stream<List<_i5.Video>>.empty(),
           )
-          as _i3.Stream<List<_i5.Video>>);
+          as _i4.Stream<List<_i5.Video>>);
 
   @override
-  _i3.Stream<List<_i5.Video>> streamLikedVideos({required String? userId}) =>
+  _i4.Stream<List<_i5.Video>> streamLikedVideos({required String? userId}) =>
       (super.noSuchMethod(
             Invocation.method(#streamLikedVideos, [], {#userId: userId}),
-            returnValue: _i3.Stream<List<_i5.Video>>.empty(),
+            returnValue: _i4.Stream<List<_i5.Video>>.empty(),
           )
-          as _i3.Stream<List<_i5.Video>>);
+          as _i4.Stream<List<_i5.Video>>);
 
   @override
-  _i3.Future<List<_i5.Video>> getLikedVideos(String? userId) =>
+  _i4.Future<List<_i5.Video>> getLikedVideos(String? userId) =>
       (super.noSuchMethod(
             Invocation.method(#getLikedVideos, [userId]),
-            returnValue: _i3.Future<List<_i5.Video>>.value(<_i5.Video>[]),
+            returnValue: _i4.Future<List<_i5.Video>>.value(<_i5.Video>[]),
           )
-          as _i3.Future<List<_i5.Video>>);
+          as _i4.Future<List<_i5.Video>>);
 
   @override
-  _i3.Future<List<_i5.Video>> getSavedVideos(String? userId) =>
+  _i4.Future<List<_i5.Video>> getSavedVideos(String? userId) =>
       (super.noSuchMethod(
             Invocation.method(#getSavedVideos, [userId]),
-            returnValue: _i3.Future<List<_i5.Video>>.value(<_i5.Video>[]),
+            returnValue: _i4.Future<List<_i5.Video>>.value(<_i5.Video>[]),
           )
-          as _i3.Future<List<_i5.Video>>);
+          as _i4.Future<List<_i5.Video>>);
 
   @override
-  _i3.Future<List<_i5.Video>> getVideosByIds({
+  _i4.Future<List<_i5.Video>> getVideosByIds({
     required List<String>? videoIds,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#getVideosByIds, [], {#videoIds: videoIds}),
-            returnValue: _i3.Future<List<_i5.Video>>.value(<_i5.Video>[]),
+            returnValue: _i4.Future<List<_i5.Video>>.value(<_i5.Video>[]),
           )
-          as _i3.Future<List<_i5.Video>>);
+          as _i4.Future<List<_i5.Video>>);
 
   @override
-  _i3.Future<List<_i5.Video>> getNextFilteredVideos({
-    required _i4.DocumentSnapshot<Object?>? lastVideo,
+  _i4.Future<List<_i5.Video>> getNextFilteredVideos({
+    required _i2.DocumentSnapshot<Object?>? lastVideo,
     required Set<String>? filterIds,
     int? limit = 10,
   }) =>
@@ -347,12 +353,12 @@ class MockFirestoreService extends _i1.Mock implements _i2.FirestoreService {
               #filterIds: filterIds,
               #limit: limit,
             }),
-            returnValue: _i3.Future<List<_i5.Video>>.value(<_i5.Video>[]),
+            returnValue: _i4.Future<List<_i5.Video>>.value(<_i5.Video>[]),
           )
-          as _i3.Future<List<_i5.Video>>);
+          as _i4.Future<List<_i5.Video>>);
 
   @override
-  _i3.Future<List<_i5.Video>> searchVideos(
+  _i4.Future<List<_i5.Video>> searchVideos(
     String? query, {
     _i5.Video? startAfter,
     int? limit = 10,
@@ -363,14 +369,14 @@ class MockFirestoreService extends _i1.Mock implements _i2.FirestoreService {
               [query],
               {#startAfter: startAfter, #limit: limit},
             ),
-            returnValue: _i3.Future<List<_i5.Video>>.value(<_i5.Video>[]),
+            returnValue: _i4.Future<List<_i5.Video>>.value(<_i5.Video>[]),
           )
-          as _i3.Future<List<_i5.Video>>);
+          as _i4.Future<List<_i5.Video>>);
 
   @override
-  _i3.Future<List<Map<String, dynamic>>> searchUsers(
+  _i4.Future<List<Map<String, dynamic>>> searchUsers(
     String? query, {
-    _i4.DocumentSnapshot<Object?>? startAfter,
+    _i2.DocumentSnapshot<Object?>? startAfter,
     int? limit = 10,
   }) =>
       (super.noSuchMethod(
@@ -379,17 +385,17 @@ class MockFirestoreService extends _i1.Mock implements _i2.FirestoreService {
               [query],
               {#startAfter: startAfter, #limit: limit},
             ),
-            returnValue: _i3.Future<List<Map<String, dynamic>>>.value(
+            returnValue: _i4.Future<List<Map<String, dynamic>>>.value(
               <Map<String, dynamic>>[],
             ),
           )
-          as _i3.Future<List<Map<String, dynamic>>>);
+          as _i4.Future<List<Map<String, dynamic>>>);
 
   @override
-  _i3.Future<List<_i5.Video>> getUserVideos({
+  _i4.Future<List<_i5.Video>> getUserVideos({
     required String? userId,
-    _i5.Video? startAfter,
-    int? limit = 12,
+    _i2.DocumentSnapshot<Object?>? startAfter,
+    int? limit = 10,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#getUserVideos, [], {
@@ -397,12 +403,12 @@ class MockFirestoreService extends _i1.Mock implements _i2.FirestoreService {
               #startAfter: startAfter,
               #limit: limit,
             }),
-            returnValue: _i3.Future<List<_i5.Video>>.value(<_i5.Video>[]),
+            returnValue: _i4.Future<List<_i5.Video>>.value(<_i5.Video>[]),
           )
-          as _i3.Future<List<_i5.Video>>);
+          as _i4.Future<List<_i5.Video>>);
 
   @override
-  _i3.Future<bool> isFollowing({
+  _i4.Future<bool> isFollowing({
     required String? followerId,
     required String? followedId,
   }) =>
@@ -411,12 +417,12 @@ class MockFirestoreService extends _i1.Mock implements _i2.FirestoreService {
               #followerId: followerId,
               #followedId: followedId,
             }),
-            returnValue: _i3.Future<bool>.value(false),
+            returnValue: _i4.Future<bool>.value(false),
           )
-          as _i3.Future<bool>);
+          as _i4.Future<bool>);
 
   @override
-  _i3.Future<void> toggleFollow({
+  _i4.Future<void> toggleFollow({
     required String? followerId,
     required String? followedId,
   }) =>
@@ -425,10 +431,26 @@ class MockFirestoreService extends _i1.Mock implements _i2.FirestoreService {
               #followerId: followerId,
               #followedId: followedId,
             }),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
+
+  @override
+  _i4.Future<_i2.DocumentSnapshot<Map<String, dynamic>>> getVideoDocument(
+    String? videoId,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#getVideoDocument, [videoId]),
+            returnValue:
+                _i4.Future<_i2.DocumentSnapshot<Map<String, dynamic>>>.value(
+                  _FakeDocumentSnapshot_0<Map<String, dynamic>>(
+                    this,
+                    Invocation.method(#getVideoDocument, [videoId]),
+                  ),
+                ),
+          )
+          as _i4.Future<_i2.DocumentSnapshot<Map<String, dynamic>>>);
 }
 
 /// A class which mocks [VideoStateStorage].
@@ -440,47 +462,47 @@ class MockVideoStateStorage extends _i1.Mock implements _i8.VideoStateStorage {
   }
 
   @override
-  _i3.Future<void> saveVideoState(_i9.VideoState? state) =>
+  _i4.Future<void> saveVideoState(_i9.VideoState? state) =>
       (super.noSuchMethod(
             Invocation.method(#saveVideoState, [state]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
 
   @override
-  _i3.Future<_i9.VideoState?> loadVideoState(String? videoId) =>
+  _i4.Future<_i9.VideoState?> loadVideoState(String? videoId) =>
       (super.noSuchMethod(
             Invocation.method(#loadVideoState, [videoId]),
-            returnValue: _i3.Future<_i9.VideoState?>.value(),
+            returnValue: _i4.Future<_i9.VideoState?>.value(),
           )
-          as _i3.Future<_i9.VideoState?>);
+          as _i4.Future<_i9.VideoState?>);
 
   @override
-  _i3.Future<void> removeVideoState(String? videoId) =>
+  _i4.Future<void> removeVideoState(String? videoId) =>
       (super.noSuchMethod(
             Invocation.method(#removeVideoState, [videoId]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
 
   @override
-  _i3.Future<void> cleanup(Duration? threshold) =>
+  _i4.Future<void> cleanup(Duration? threshold) =>
       (super.noSuchMethod(
             Invocation.method(#cleanup, [threshold]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
 
   @override
-  _i3.Future<List<_i9.VideoState>> loadAllVideoStates() =>
+  _i4.Future<List<_i9.VideoState>> loadAllVideoStates() =>
       (super.noSuchMethod(
             Invocation.method(#loadAllVideoStates, []),
-            returnValue: _i3.Future<List<_i9.VideoState>>.value(
+            returnValue: _i4.Future<List<_i9.VideoState>>.value(
               <_i9.VideoState>[],
             ),
           )
-          as _i3.Future<List<_i9.VideoState>>);
+          as _i4.Future<List<_i9.VideoState>>);
 }

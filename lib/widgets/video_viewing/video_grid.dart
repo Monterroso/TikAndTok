@@ -100,25 +100,45 @@ class VideoGrid extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          Image.network(
-            video.url,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                color: Colors.grey[900],
-                child: const Icon(
-                  Icons.error_outline,
-                  color: Colors.white54,
-                ),
-              );
-            },
-          ),
+          // Use thumbnailUrl if available, otherwise show placeholder
+          if (video.thumbnailUrl != null && video.thumbnailUrl!.isNotEmpty)
+            Image.network(
+              video.thumbnailUrl!,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
+            )
+          else
+            _buildPlaceholder(),
           if (actionBuilder != null)
             Positioned(
               right: 4,
               top: 4,
               child: actionBuilder!(video),
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return Container(
+      color: Colors.grey[900],
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.play_circle_outline,
+            color: Colors.white54,
+            size: 32,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Loading thumbnail...',
+            style: TextStyle(
+              color: Colors.white54,
+              fontSize: 12,
+            ),
+          ),
         ],
       ),
     );

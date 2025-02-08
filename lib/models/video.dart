@@ -18,6 +18,7 @@ class Video with _$Video {
     required String userId,
     required String title,
     required String description,
+    String? thumbnailUrl,
     @Default(0) int likes,
     @Default(0) int comments,
     required DateTime createdAt,
@@ -72,6 +73,7 @@ class Video with _$Video {
       userId: userId,
       title: title,
       description: data['description'] ?? '',
+      thumbnailUrl: data['thumbnailUrl'] as String?,
       likes: likedBy.length, // Compute likes from likedBy set size
       comments: (data['comments'] as num?)?.toInt() ?? 0,
       createdAt: timestamp.toDate(),
@@ -87,6 +89,7 @@ class Video with _$Video {
     'userId': userId,
     'title': title,
     'description': description,
+    'thumbnailUrl': thumbnailUrl,
     'likedBy': likedBy.toList(), // Convert Set to List for Firestore
     'savedBy': savedBy.toList(), // Convert Set to List for Firestore
     'comments': comments,
