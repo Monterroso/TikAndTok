@@ -65,7 +65,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '428446435658',
     projectId: 'tikandtok-684cb',
     storageBucket: 'tikandtok-684cb.firebasestorage.app',
-    iosBundleId: 'com.example.flutterApplication1',
+    iosBundleId: 'com.monterroso.tiktokclone',
   );
 
 }

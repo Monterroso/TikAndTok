@@ -1,4 +1,4 @@
-# flutter_application_1
+# TikTok Clone
 
 A new Flutter project.
 
