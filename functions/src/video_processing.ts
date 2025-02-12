@@ -2,7 +2,7 @@ import * as functions from 'firebase-functions';
 import { getFirestore, Timestamp, FieldValue } from 'firebase-admin/firestore';
 import fetch from 'node-fetch';
 
-const db = getFirestore();
+const tweet_batch_topic = 'tweet_batch_processed';
 
 /**
  * Interfaces for API responses
@@ -32,6 +32,11 @@ export interface VideoDocument extends VideoMetadata {
   comments: number;
   tweetId: string;
   authorId: string;
+}
+
+interface BatchProcessingMessage {
+  batchId: string;
+  timestamp: string;
 }
 
 /**
@@ -121,88 +126,96 @@ export async function getVideoMetadata(url: string): Promise<VideoMetadata | nul
 }
 
 /**
- * Cloud Function triggered on tweet creation to process video content
+ * Cloud Function triggered by Pub/Sub when a batch of tweets is ready for processing.
+ * This function listens to messages from the tweet_batch_processed topic, which are
+ * published after tweet batches are saved to Firestore.
  */
-export const onTweetCreated = functions.firestore
-  .document('tweets/{tweetId}')
-  .onCreate(async (snap, context) => {
-    console.log('🔥 onTweetCreated function triggered with new data:', snap.data());
-    const tweet = snap.data();
-    console.log('Tweet URLs before filtering:', tweet.urls);
-    // Filter URLs to only include those that start with http or https
-    const urls = (tweet.urls || []).filter((url: string) => url.startsWith('http'));
-    console.log('Tweet URLs after filtering:', urls);
-    const batch = db.batch();
-    let processedCount = 0;
-    let errorCount = 0;
-    
-    try {
-      console.log('Processing URLs:', urls);
-      
-      // Process each URL in the tweet
-      for (const url of urls) {
-        const metadata = await getVideoMetadata(url);
-        
-        if (metadata) {
-          // Create video document with only defined values
-          const videoDoc: VideoDocument = {
-            url: metadata.url,
-            thumbnailUrl: metadata.thumbnailUrl,
-            title: metadata.title,
-            platform: metadata.platform,
-            createdAt: FieldValue.serverTimestamp(),
-            updatedAt: FieldValue.serverTimestamp(),
-            likedBy: [],
-            savedBy: [],
-            comments: 0,
-            tweetId: context.params.tweetId,
-            authorId: tweet.originalAuthor.profileId,
-            ...(metadata.description && { description: metadata.description })  // Only include if defined
-          };
+export const processTweetBatch = functions.pubsub
+  .topic(tweet_batch_topic)
+  .onPublish(async (message) => {
+    const db = getFirestore();
+    const data = message.json as BatchProcessingMessage;
+    console.log('Processing tweet batch:', data);
 
-          console.log(videoDoc);
-          
-          // Add to batch
-          const videoRef = db.collection('videos').doc();
-          batch.set(videoRef, videoDoc);
-          processedCount++;
-        } else {
-          errorCount++;
-        }
+    try {
+      // Query tweets from this batch
+      const tweetsSnapshot = await db.collection('tweets')
+        .where('batchId', '==', data.batchId)
+        .where('isProcessed', '==', false)
+        .get();
+
+      if (tweetsSnapshot.empty) {
+        console.log(`No unprocessed tweets found in batch ${data.batchId}`);
+        return;
       }
-      
-      // Mark tweet as processed with status
-      batch.update(snap.ref, { 
-        isProcessed: true,
-        processedAt: FieldValue.serverTimestamp(),
-        processingSummary: {
-          total: urls.length,  // Only count filtered URLs
-          processed: processedCount,
-          failed: errorCount
+
+      console.log(`Processing ${tweetsSnapshot.size} tweets from batch ${data.batchId}`);
+      const batch = db.batch();
+      let processedCount = 0;
+      let errorCount = 0;
+
+      // Process each tweet in the batch
+      for (const tweetDoc of tweetsSnapshot.docs) {
+        const tweet = tweetDoc.data();
+        const urls = (tweet.urls || []).filter((url: string) => url.startsWith('http'));
+        
+        // Process each URL in the tweet
+        for (const url of urls) {
+          const metadata = await getVideoMetadata(url);
+          
+          if (metadata) {
+            // Create video document
+            const videoDoc: VideoDocument = {
+              url: metadata.url,
+              thumbnailUrl: metadata.thumbnailUrl,
+              title: metadata.title,
+              platform: metadata.platform,
+              createdAt: FieldValue.serverTimestamp(),
+              updatedAt: FieldValue.serverTimestamp(),
+              likedBy: [],
+              savedBy: [],
+              comments: 0,
+              tweetId: tweetDoc.id,
+              authorId: tweet.originalAuthor.username,
+              ...(metadata.description && { description: metadata.description })
+            };
+
+            // Add to batch
+            const videoRef = db.collection('videos').doc();
+            batch.set(videoRef, videoDoc);
+            processedCount++;
+          } else {
+            console.error(`Error processing video metadata for URL: ${url}, metadata: ${metadata}`);
+            errorCount++;
+          }
         }
-      });
-      
+
+        // Mark tweet as processed
+        batch.update(tweetDoc.ref, {
+          isProcessed: true,
+          processingStatus: 'completed',
+          processedAt: FieldValue.serverTimestamp(),
+          processingSummary: {
+            total: urls.length,
+            processed: processedCount,
+            failed: errorCount
+          }
+        });
+      }
+
       // Commit all changes
       await batch.commit();
-      
-      console.log(`Successfully processed tweet ${context.params.tweetId}:`, {
-        total: urls.length,
-        processed: processedCount,
-        failed: errorCount
+
+      console.log(`Successfully processed batch ${data.batchId}:`, {
+        tweets: tweetsSnapshot.size,
+        videos: processedCount,
+        errors: errorCount
       });
-      
+
     } catch (error) {
-      console.error(`Error processing tweet ${context.params.tweetId}:`, error);
-      // Mark as failed but processed to prevent infinite retries
-      await snap.ref.update({ 
-        isProcessed: true,
-        processedAt: FieldValue.serverTimestamp(),
-        processingError: error instanceof Error ? error.message : 'Unknown error',
-        processingSummary: {
-          total: urls.length,  // Only count filtered URLs
-          processed: processedCount,
-          failed: urls.length - processedCount
-        }
-      });
+      console.error(`Error processing batch ${data.batchId}:`, error);
+      // We should implement a dead-letter queue or retry mechanism here
+      // For now, we'll just log the error
+      throw error; // This will trigger Pub/Sub's retry mechanism
     }
   }); 

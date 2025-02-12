@@ -8,20 +8,10 @@
 import * as functions from "firebase-functions/v1";
 import * as admin from "firebase-admin";
 import * as logger from "firebase-functions/logger";
+import { processTweetBatch } from './video_processing';
 
 // Initialize Firebase Admin first
 admin.initializeApp();
-
-// Import functions that need Firebase Admin
-import { onTweetCreated } from './video_processing';
-
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
-
-// export const helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
 
 /**
  * Cloud Function to create a user profile in Firestore when a new auth user
@@ -66,4 +56,5 @@ export const createUserProfile = functions.auth
     }
   });
 
-export { onTweetCreated };
+// Export video processing function
+export { processTweetBatch };
