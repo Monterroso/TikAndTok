@@ -9,6 +9,12 @@ import * as functions from "firebase-functions/v1";
 import * as admin from "firebase-admin";
 import * as logger from "firebase-functions/logger";
 
+// Initialize Firebase Admin first
+admin.initializeApp();
+
+// Import functions that need Firebase Admin
+import { onTweetCreated } from './video_processing';
+
 // Start writing functions
 // https://firebase.google.com/docs/functions/typescript
 
@@ -16,8 +22,6 @@ import * as logger from "firebase-functions/logger";
 //   logger.info("Hello logs!", {structuredData: true});
 //   response.send("Hello from Firebase!");
 // });
-
-admin.initializeApp();
 
 /**
  * Cloud Function to create a user profile in Firestore when a new auth user
@@ -61,3 +65,5 @@ export const createUserProfile = functions.auth
       throw error;
     }
   });
+
+export { onTweetCreated };
