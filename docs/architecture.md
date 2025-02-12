@@ -125,7 +125,13 @@ TikAndTok/
 │ │ │ │ └── VideoBackground // Manages video player lifecycle
 │ │ │   ├── Auto-play and looping
 │ │ │   ├── Error states with messages
-│ │ │   └── Loading indicators
+│ │ │   ├── Loading indicators
+│ │ │   ├── Orientation handling:
+│ │ │   │   ├── Automatic detection from dimensions
+│ │ │   │   ├── 90-degree rotation for landscape
+│ │ │   │   ├── Dynamic scaling with SizedBox.expand
+│ │ │   │   └── AspectRatio preservation
+│ │ │   └── Proper cleanup on disposal
 │ │ │ ├── video_feed.dart // Vertical swipeable video list
 │ │ │ │ └── VideoFeed // Manages multiple videos
 │ │ │   ├── PageView.builder for smooth scrolling

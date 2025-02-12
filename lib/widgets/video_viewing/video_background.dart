@@ -26,9 +26,7 @@ class _VideoBackgroundState extends State<VideoBackground> {
   @override
   void initState() {
     super.initState();
-    debugPrint('VideoBackground initialized with orientation: ${widget.orientation}');
-    debugPrint('Video URL: ${widget.videoUrl}');
-    
+            
     if (widget.videoUrl != null && widget.videoUrl!.isNotEmpty) {
       _initializeVideo();
     } else {
@@ -45,9 +43,7 @@ class _VideoBackgroundState extends State<VideoBackground> {
       
       // Log video details after initialization
       final size = _controller!.value.size;
-      debugPrint('Video initialized with dimensions: ${size.width}x${size.height}');
-      debugPrint('Natural aspect ratio: ${size.width / size.height}');
-      
+                  
       await _controller!.setLooping(true);
       await _controller!.play();
       
@@ -58,8 +54,7 @@ class _VideoBackgroundState extends State<VideoBackground> {
         });
       }
     } catch (e) {
-      debugPrint('Error initializing video: $e');
-      if (mounted) {
+            if (mounted) {
         setState(() {
           _error = 'Unable to load video';
           _isInitialized = false;
@@ -70,8 +65,7 @@ class _VideoBackgroundState extends State<VideoBackground> {
 
   @override
   void dispose() {
-    debugPrint('Disposing VideoBackground');
-    _controller?.dispose();
+        _controller?.dispose();
     super.dispose();
   }
 
@@ -86,8 +80,7 @@ class _VideoBackgroundState extends State<VideoBackground> {
   Widget _buildVideoWidget() {
     // Show error state with custom message
     if (_error != null) {
-      debugPrint('Showing error state: $_error');
-      return Center(
+            return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -111,8 +104,7 @@ class _VideoBackgroundState extends State<VideoBackground> {
 
     // Show loading state
     if (!_isInitialized || _controller == null) {
-      debugPrint('Showing loading state');
-      return const Center(
+            return const Center(
         child: CircularProgressIndicator(
           color: Colors.white,
         ),
@@ -123,15 +115,6 @@ class _VideoBackgroundState extends State<VideoBackground> {
     final videoSize = _controller!.value.size;
     final screenSize = MediaQuery.of(context).size;
     final videoAspectRatio = videoSize.width / videoSize.height;
-    final screenAspectRatio = screenSize.width / screenSize.height;
-
-    debugPrint('\n=== Video Layout Debug Info ===');
-    debugPrint('Screen size: ${screenSize.width}x${screenSize.height}');
-    debugPrint('Screen aspect ratio: $screenAspectRatio');
-    debugPrint('Video size: ${videoSize.width}x${videoSize.height}');
-    debugPrint('Video aspect ratio: $videoAspectRatio');
-    debugPrint('Orientation setting: ${widget.orientation}');
-    debugPrint('Natural orientation: ${videoAspectRatio > 1 ? "landscape" : "portrait"}');
 
     // Create the base video player widget
     Widget player = VideoPlayer(_controller!);
@@ -144,9 +127,7 @@ class _VideoBackgroundState extends State<VideoBackground> {
     if (shouldRotate) {
       // Calculate the scale factor to fill the screen height while maintaining aspect ratio
       final scale = screenSize.height / videoSize.width;
-      debugPrint('Applying landscape transformation');
-      debugPrint('Scale factor: $scale');
-      
+                  
       // Create a container that's as wide as the screen height and as tall as the screen width
       player = SizedBox.expand(
         child: FittedBox(
@@ -167,17 +148,14 @@ class _VideoBackgroundState extends State<VideoBackground> {
           ),
         ),
       );
-      debugPrint('Applied rotation and scaling transformations');
-    } else {
-      debugPrint('Using default portrait layout');
-      // For portrait videos, maintain original aspect ratio
+          } else {
+            // For portrait videos, maintain original aspect ratio
       player = AspectRatio(
         aspectRatio: videoAspectRatio,
         child: player,
       );
     }
-    debugPrint('=== End Debug Info ===\n');
-
+    
     return Container(
       color: Colors.black,
       child: player,

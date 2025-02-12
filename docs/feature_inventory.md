@@ -101,6 +101,12 @@ This document tracks all implemented and planned features for the application. I
     - Added video player with auto-play and looping
     - Implemented error handling for invalid videos
     - Added loading states and error messages
+    - Implemented automatic video orientation handling:
+      - Detects orientation from video dimensions
+      - Rotates landscape videos 90 degrees counterclockwise
+      - Scales videos to fill screen while maintaining aspect ratio
+      - Handles both portrait (9:16) and landscape (16:9) videos
+      - Documentation in `docs/previous_workflows/video_orientation_implementation.md`
   - [✓] Set up video data model and integration
     *Location:* `lib/models/video.dart`, `lib/widgets/video_viewing/creator_info_group.dart`
     - Created Video model with Firestore integration
