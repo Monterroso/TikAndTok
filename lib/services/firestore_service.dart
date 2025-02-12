@@ -281,9 +281,10 @@ class FirestoreService {
           likedBy.add(userId);
         }
 
-        // Update the document
+        // Update both likedBy array and likes count atomically
         transaction.update(videoRef, {
           'likedBy': likedBy.toList(),
+          'likes': likedBy.length, // Update likes count based on likedBy length
         });
       });
     } catch (e) {
@@ -306,11 +307,11 @@ class FirestoreService {
 
   /// Helper to get video stats from document
   Map<String, dynamic> getStatsFromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
-    if (!doc.exists) return {'likes': 0, 'comments': 0};
+    if (!doc.exists) return {'comments': 0, 'likes': 0};
     final data = doc.data() as Map<String, dynamic>;
     return {
-      'likes': data['likes'] ?? 0,
-      'comments': data['comments'] ?? 0,
+      'comments': data['comments'] as int? ?? 0,
+      'likes': data['likes'] as int? ?? 0,
     };
   }
 

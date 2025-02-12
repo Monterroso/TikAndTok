@@ -52,13 +52,19 @@ class RightActionsColumn extends StatelessWidget {
             : {'comments': video.comments};
         final commentCount = stats['comments'] as int? ?? 0;
 
+        // Get likedBy set from document or use video's likedBy as fallback
+        final likedBySet = snapshot.hasData
+            ? FirestoreService().getLikedByFromDoc(snapshot.data!)
+            : video.likedBy;
+        final currentLikeCount = likedBySet.length;
+
         return Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Like button with animation
             InteractionAnimation(
               isActive: isLiked,
-              count: likeCount,
+              count: currentLikeCount,
               onTap: () => onLikeChanged(!isLiked),
               activeIcon: Icons.favorite,
               inactiveIcon: Icons.favorite_border,
