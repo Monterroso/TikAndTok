@@ -187,6 +187,7 @@ class _VideoFeedState extends State<VideoFeed> with TickerProviderStateMixin {
         onDoubleTap: _handleDoubleTap,
         child: VideoBackground(
           videoUrl: video.url,
+          orientation: video.orientation,
         ),
       ),
     );

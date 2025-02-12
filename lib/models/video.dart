@@ -6,6 +6,12 @@ import 'package:flutter/foundation.dart';
 part 'video.freezed.dart';
 part 'video.g.dart';
 
+/// Video orientation enum
+enum VideoOrientation {
+  portrait,  // 9:16 aspect ratio
+  landscape, // 16:9 aspect ratio
+}
+
 /// Represents a video in the application.
 /// This model handles video metadata and provides conversion to/from Firestore.
 @freezed
@@ -25,6 +31,7 @@ class Video with _$Video {
     Map<String, dynamic>? metadata,
     @Default({}) Set<String> likedBy,
     @Default({}) Set<String> savedBy,
+    @Default(VideoOrientation.portrait) VideoOrientation orientation,
   }) = _Video;
 
   /// Creates a Video instance from a Firestore document
@@ -67,6 +74,14 @@ class Video with _$Video {
     final savedByList = (data['savedBy'] as List<dynamic>?) ?? [];
     final savedBy = Set<String>.from(savedByList.map((e) => e.toString()));
 
+    // Parse orientation from metadata or default to portrait
+    VideoOrientation orientation = VideoOrientation.portrait;
+    if (data['metadata'] != null && data['metadata']['orientation'] != null) {
+      orientation = data['metadata']['orientation'] == 'landscape' 
+        ? VideoOrientation.landscape 
+        : VideoOrientation.portrait;
+    }
+
     return Video(
       id: doc.id,
       url: url,
@@ -80,22 +95,33 @@ class Video with _$Video {
       metadata: data['metadata'] as Map<String, dynamic>?,
       likedBy: likedBy,
       savedBy: savedBy,
+      orientation: orientation,
     );
   }
 
   /// Converts the Video instance to a Map for Firestore
-  Map<String, dynamic> toFirestore() => {
-    'url': url,
-    'userId': userId,
-    'title': title,
-    'description': description,
-    'thumbnailUrl': thumbnailUrl,
-    'likedBy': likedBy.toList(), // Convert Set to List for Firestore
-    'savedBy': savedBy.toList(), // Convert Set to List for Firestore
-    'comments': comments,
-    'createdAt': Timestamp.fromDate(createdAt),
-    if (metadata != null) 'metadata': metadata,
-  };
+  Map<String, dynamic> toFirestore() {
+    final baseMap = {
+      'url': url,
+      'userId': userId,
+      'title': title,
+      'description': description,
+      'thumbnailUrl': thumbnailUrl,
+      'likedBy': likedBy.toList(), // Convert Set to List for Firestore
+      'savedBy': savedBy.toList(), // Convert Set to List for Firestore
+      'comments': comments,
+      'createdAt': Timestamp.fromDate(createdAt),
+    };
+
+    // Include orientation in metadata
+    final videoMetadata = metadata ?? {};
+    videoMetadata['orientation'] = orientation == VideoOrientation.landscape ? 'landscape' : 'portrait';
+
+    return {
+      ...baseMap,
+      'metadata': videoMetadata,
+    };
+  }
 
   /// Check if the video URL is still valid
   Future<bool> isUrlValid() async {

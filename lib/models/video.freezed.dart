@@ -32,6 +32,7 @@ mixin _$Video {
   Map<String, dynamic>? get metadata => throw _privateConstructorUsedError;
   Set<String> get likedBy => throw _privateConstructorUsedError;
   Set<String> get savedBy => throw _privateConstructorUsedError;
+  VideoOrientation get orientation => throw _privateConstructorUsedError;
 
   /// Serializes this Video to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -59,7 +60,8 @@ abstract class $VideoCopyWith<$Res> {
       DateTime createdAt,
       Map<String, dynamic>? metadata,
       Set<String> likedBy,
-      Set<String> savedBy});
+      Set<String> savedBy,
+      VideoOrientation orientation});
 }
 
 /// @nodoc
@@ -89,6 +91,7 @@ class _$VideoCopyWithImpl<$Res, $Val extends Video>
     Object? metadata = freezed,
     Object? likedBy = null,
     Object? savedBy = null,
+    Object? orientation = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -139,6 +142,10 @@ class _$VideoCopyWithImpl<$Res, $Val extends Video>
           ? _value.savedBy
           : savedBy // ignore: cast_nullable_to_non_nullable
               as Set<String>,
+      orientation: null == orientation
+          ? _value.orientation
+          : orientation // ignore: cast_nullable_to_non_nullable
+              as VideoOrientation,
     ) as $Val);
   }
 }
@@ -162,7 +169,8 @@ abstract class _$$VideoImplCopyWith<$Res> implements $VideoCopyWith<$Res> {
       DateTime createdAt,
       Map<String, dynamic>? metadata,
       Set<String> likedBy,
-      Set<String> savedBy});
+      Set<String> savedBy,
+      VideoOrientation orientation});
 }
 
 /// @nodoc
@@ -190,6 +198,7 @@ class __$$VideoImplCopyWithImpl<$Res>
     Object? metadata = freezed,
     Object? likedBy = null,
     Object? savedBy = null,
+    Object? orientation = null,
   }) {
     return _then(_$VideoImpl(
       id: null == id
@@ -240,6 +249,10 @@ class __$$VideoImplCopyWithImpl<$Res>
           ? _value._savedBy
           : savedBy // ignore: cast_nullable_to_non_nullable
               as Set<String>,
+      orientation: null == orientation
+          ? _value.orientation
+          : orientation // ignore: cast_nullable_to_non_nullable
+              as VideoOrientation,
     ));
   }
 }
@@ -259,7 +272,8 @@ class _$VideoImpl extends _Video with DiagnosticableTreeMixin {
       required this.createdAt,
       final Map<String, dynamic>? metadata,
       final Set<String> likedBy = const {},
-      final Set<String> savedBy = const {}})
+      final Set<String> savedBy = const {},
+      this.orientation = VideoOrientation.portrait})
       : _metadata = metadata,
         _likedBy = likedBy,
         _savedBy = savedBy,
@@ -317,8 +331,12 @@ class _$VideoImpl extends _Video with DiagnosticableTreeMixin {
   }
 
   @override
+  @JsonKey()
+  final VideoOrientation orientation;
+
+  @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'Video(id: $id, url: $url, userId: $userId, title: $title, description: $description, thumbnailUrl: $thumbnailUrl, likes: $likes, comments: $comments, createdAt: $createdAt, metadata: $metadata, likedBy: $likedBy, savedBy: $savedBy)';
+    return 'Video(id: $id, url: $url, userId: $userId, title: $title, description: $description, thumbnailUrl: $thumbnailUrl, likes: $likes, comments: $comments, createdAt: $createdAt, metadata: $metadata, likedBy: $likedBy, savedBy: $savedBy, orientation: $orientation)';
   }
 
   @override
@@ -337,7 +355,8 @@ class _$VideoImpl extends _Video with DiagnosticableTreeMixin {
       ..add(DiagnosticsProperty('createdAt', createdAt))
       ..add(DiagnosticsProperty('metadata', metadata))
       ..add(DiagnosticsProperty('likedBy', likedBy))
-      ..add(DiagnosticsProperty('savedBy', savedBy));
+      ..add(DiagnosticsProperty('savedBy', savedBy))
+      ..add(DiagnosticsProperty('orientation', orientation));
   }
 
   @override
@@ -360,7 +379,9 @@ class _$VideoImpl extends _Video with DiagnosticableTreeMixin {
                 other.createdAt == createdAt) &&
             const DeepCollectionEquality().equals(other._metadata, _metadata) &&
             const DeepCollectionEquality().equals(other._likedBy, _likedBy) &&
-            const DeepCollectionEquality().equals(other._savedBy, _savedBy));
+            const DeepCollectionEquality().equals(other._savedBy, _savedBy) &&
+            (identical(other.orientation, orientation) ||
+                other.orientation == orientation));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -378,7 +399,8 @@ class _$VideoImpl extends _Video with DiagnosticableTreeMixin {
       createdAt,
       const DeepCollectionEquality().hash(_metadata),
       const DeepCollectionEquality().hash(_likedBy),
-      const DeepCollectionEquality().hash(_savedBy));
+      const DeepCollectionEquality().hash(_savedBy),
+      orientation);
 
   /// Create a copy of Video
   /// with the given fields replaced by the non-null parameter values.
@@ -409,7 +431,8 @@ abstract class _Video extends Video {
       required final DateTime createdAt,
       final Map<String, dynamic>? metadata,
       final Set<String> likedBy,
-      final Set<String> savedBy}) = _$VideoImpl;
+      final Set<String> savedBy,
+      final VideoOrientation orientation}) = _$VideoImpl;
   const _Video._() : super._();
 
   factory _Video.fromJson(Map<String, dynamic> json) = _$VideoImpl.fromJson;
@@ -438,6 +461,8 @@ abstract class _Video extends Video {
   Set<String> get likedBy;
   @override
   Set<String> get savedBy;
+  @override
+  VideoOrientation get orientation;
 
   /// Create a copy of Video
   /// with the given fields replaced by the non-null parameter values.

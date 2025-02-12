@@ -25,6 +25,9 @@ _$VideoImpl _$$VideoImplFromJson(Map<String, dynamic> json) => _$VideoImpl(
               ?.map((e) => e as String)
               .toSet() ??
           const {},
+      orientation:
+          $enumDecodeNullable(_$VideoOrientationEnumMap, json['orientation']) ??
+              VideoOrientation.portrait,
     );
 
 Map<String, dynamic> _$$VideoImplToJson(_$VideoImpl instance) =>
@@ -41,4 +44,10 @@ Map<String, dynamic> _$$VideoImplToJson(_$VideoImpl instance) =>
       'metadata': instance.metadata,
       'likedBy': instance.likedBy.toList(),
       'savedBy': instance.savedBy.toList(),
+      'orientation': _$VideoOrientationEnumMap[instance.orientation]!,
     };
+
+const _$VideoOrientationEnumMap = {
+  VideoOrientation.portrait: 'portrait',
+  VideoOrientation.landscape: 'landscape',
+};

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart' as path;
+import 'package:video_player/video_player.dart';
 /// Service class to handle all Firebase Storage file operations.
 /// This service is responsible for:
 /// - File uploads
@@ -22,7 +23,94 @@ class FirebaseStorageService {
 
   // Constants
   static const String _profilePicturesPath = 'profile_pictures';
-  static const int _maxFileSizeBytes = 5 * 1024 * 1024; // 5MB
+  static const String _videosPath = 'videos';
+  static const int _maxFileSizeBytes = 100 * 1024 * 1024; // 100MB for videos
+  static const double _maxAspectRatioTolerance = 0.1; // 10% tolerance for aspect ratio
+
+  /// Validates video dimensions and orientation
+  /// Returns null if valid, error message if invalid
+  Future<String?> validateVideo(File file) async {
+    try {
+      // Check file size
+      final size = await file.length();
+      if (size > _maxFileSizeBytes) {
+        return 'Video file size must be less than ${_maxFileSizeBytes ~/ (1024 * 1024)}MB';
+      }
+
+      // Initialize video player to get dimensions
+      final controller = VideoPlayerController.file(file);
+      await controller.initialize();
+      
+      try {
+        final size = controller.value.size;
+        final aspectRatio = size.width / size.height;
+
+        // Check if video dimensions are reasonable
+        if (size.width < 180 || size.height < 180) {
+          return 'Video dimensions too small. Minimum 180x180 pixels required.';
+        }
+
+        // Check if aspect ratio is close to portrait (9:16) or landscape (16:9)
+        final portraitRatio = 9.0 / 16.0;
+        final landscapeRatio = 16.0 / 9.0;
+        
+        final isPortraitLike = (aspectRatio - portraitRatio).abs() < _maxAspectRatioTolerance;
+        final isLandscapeLike = (aspectRatio - landscapeRatio).abs() < _maxAspectRatioTolerance;
+
+        if (!isPortraitLike && !isLandscapeLike) {
+          return 'Video must be in portrait (9:16) or landscape (16:9) orientation';
+        }
+
+        return null;
+      } finally {
+        await controller.dispose();
+      }
+    } catch (e) {
+      return 'Failed to validate video: $e';
+    }
+  }
+
+  /// Uploads a video file to Firebase Storage
+  /// Returns the download URL of the uploaded video
+  Future<String> uploadVideo({
+    required String uid,
+    required File file,
+    bool validateOrientation = true,
+  }) async {
+    try {
+      if (validateOrientation) {
+        final validationError = await validateVideo(file);
+        if (validationError != null) {
+          throw validationError;
+        }
+      }
+
+      // Create a unique filename using timestamp
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final extension = path.extension(file.path);
+      final filename = '$uid-$timestamp$extension';
+      
+      // Create a reference to the video location
+      final ref = _storage.ref().child('$_videosPath/$filename');
+
+      // Upload the video with metadata
+      final uploadTask = await ref.putFile(
+        file,
+        SettableMetadata(
+          contentType: 'video/${extension.substring(1)}',
+          customMetadata: {
+            'uploaded_by': uid,
+            'timestamp': DateTime.now().toIso8601String(),
+          },
+        ),
+      );
+
+      // Get and return the download URL
+      return await uploadTask.ref.getDownloadURL();
+    } catch (e) {
+      throw 'Failed to upload video: $e';
+    }
+  }
 
   /// Uploads a profile image to Firebase Storage
   /// Returns the download URL of the uploaded image
