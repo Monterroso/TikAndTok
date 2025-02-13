@@ -89,7 +89,7 @@ class Video with _$Video {
       title: title,
       description: data['description'] ?? '',
       thumbnailUrl: data['thumbnailUrl'] as String?,
-      likes: likedBy.length, // Compute likes from likedBy set size
+      likes: (data['likes'] as num?)?.toInt() ?? likedBy.length, // Use Firestore likes count with fallback
       comments: (data['comments'] as num?)?.toInt() ?? 0,
       createdAt: timestamp.toDate(),
       metadata: data['metadata'] as Map<String, dynamic>?,

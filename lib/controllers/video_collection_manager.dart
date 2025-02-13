@@ -123,8 +123,17 @@ class VideoCollectionManager extends ChangeNotifier {
     try {
       // Get current state
       final currentState = await getVideoState(videoId);
-      final video = currentState?.videoData;
-      if (video == null) return;
+      
+      // If no state exists, fetch the video first
+      Video? video = currentState?.videoData;
+      if (video == null) {
+        final doc = await _firestoreService.getVideoDocument(videoId);
+        if (doc.exists) {
+          video = Video.fromFirestore(doc);
+        } else {
+          return;
+        }
+      }
 
       // Calculate new state
       final isCurrentlyLiked = video.isLikedByUser(userId);
@@ -155,16 +164,14 @@ class VideoCollectionManager extends ChangeNotifier {
         videoId: videoId,
         lastUpdated: DateTime.now(),
         isLiked: !isCurrentlyLiked,
-        isSaved: currentState?.isSaved ?? false,  // Safe access to nullable state
+        isSaved: currentState?.isSaved ?? false,
         videoData: updatedVideo,
       );
       _cache.put(newState);
       notifyListeners();
 
       // Update storage in background
-      _storage.saveVideoState(newState).catchError((e) {
-        debugPrint('Failed to save video state: $e');
-      });
+      _storage.saveVideoState(newState);
 
       // Perform the actual update
       await _firestoreService.toggleLike(
@@ -173,9 +180,7 @@ class VideoCollectionManager extends ChangeNotifier {
       );
 
       // Refresh liked videos list in background
-      fetchLikedVideos(userId).catchError((e) {
-        debugPrint('Failed to refresh liked videos: $e');
-      });
+      fetchLikedVideos(userId);
     } catch (e) {
       // Revert optimistic update on error
       final currentState = await getVideoState(videoId);
@@ -207,7 +212,7 @@ class VideoCollectionManager extends ChangeNotifier {
           videoId: videoId,
           lastUpdated: DateTime.now(),
           isLiked: !isCurrentlyLiked,
-          isSaved: currentState?.isSaved ?? false,  // Safe access to nullable state
+          isSaved: currentState?.isSaved ?? false,
           videoData: revertedVideo,
           error: 'Failed to toggle like: $e',
         );
@@ -215,9 +220,7 @@ class VideoCollectionManager extends ChangeNotifier {
         notifyListeners();
 
         // Update storage in background
-        _storage.saveVideoState(revertedState).catchError((e) {
-          debugPrint('Failed to save reverted state: $e');
-        });
+        _storage.saveVideoState(revertedState);
       }
     }
   }
@@ -227,8 +230,17 @@ class VideoCollectionManager extends ChangeNotifier {
     try {
       // Get current state
       final currentState = await getVideoState(videoId);
-      final video = currentState?.videoData;
-      if (video == null) return;
+      
+      // If no state exists, fetch the video first
+      Video? video = currentState?.videoData;
+      if (video == null) {
+        final doc = await _firestoreService.getVideoDocument(videoId);
+        if (doc.exists) {
+          video = Video.fromFirestore(doc);
+        } else {
+          return;
+        }
+      }
 
       // Calculate new state
       final isCurrentlySaved = video.isSavedByUser(userId);
@@ -258,7 +270,7 @@ class VideoCollectionManager extends ChangeNotifier {
       final newState = VideoState(
         videoId: videoId,
         lastUpdated: DateTime.now(),
-        isLiked: currentState?.isLiked ?? false,  // Safe access to nullable state
+        isLiked: currentState?.isLiked ?? false,
         isSaved: !isCurrentlySaved,
         videoData: updatedVideo,
       );
@@ -266,9 +278,7 @@ class VideoCollectionManager extends ChangeNotifier {
       notifyListeners();
 
       // Update storage in background
-      _storage.saveVideoState(newState).catchError((e) {
-        debugPrint('Failed to save video state: $e');
-      });
+      _storage.saveVideoState(newState);
 
       // Perform the actual update
       await _firestoreService.toggleSave(
@@ -277,9 +287,7 @@ class VideoCollectionManager extends ChangeNotifier {
       );
 
       // Refresh saved videos list in background
-      fetchSavedVideos(userId).catchError((e) {
-        debugPrint('Failed to refresh saved videos: $e');
-      });
+      fetchSavedVideos(userId);
     } catch (e) {
       // Revert optimistic update on error
       final currentState = await getVideoState(videoId);
@@ -310,7 +318,7 @@ class VideoCollectionManager extends ChangeNotifier {
         final revertedState = VideoState(
           videoId: videoId,
           lastUpdated: DateTime.now(),
-          isLiked: currentState?.isLiked ?? false,  // Safe access to nullable state
+          isLiked: currentState?.isLiked ?? false,
           isSaved: !isCurrentlySaved,
           videoData: revertedVideo,
           error: 'Failed to toggle save: $e',
@@ -319,9 +327,7 @@ class VideoCollectionManager extends ChangeNotifier {
         notifyListeners();
 
         // Update storage in background
-        _storage.saveVideoState(revertedState).catchError((e) {
-          debugPrint('Failed to save reverted state: $e');
-        });
+        _storage.saveVideoState(revertedState);
       }
     }
   }

@@ -226,6 +226,8 @@ class FirestoreService {
         'description': description,
         'likes': 0,
         'comments': 0,
+        'likedBy': [], // Initialize empty likedBy array
+        'savedBy': [], // Initialize empty savedBy array for consistency
         'createdAt': FieldValue.serverTimestamp(),
         if (metadata != null) 'metadata': metadata,
       };
@@ -270,21 +272,30 @@ class FirestoreService {
         }
 
         final data = videoDoc.data() as Map<String, dynamic>;
+        
+        // Initialize likedBy if it doesn't exist
         final likedByList = (data['likedBy'] as List<dynamic>?) ?? [];
         final likedBy = Set<String>.from(likedByList.map((e) => e.toString()));
         
         // Toggle like status
         final wasLiked = likedBy.contains(userId);
+        
+        // Update both the likedBy array and likes count atomically
         if (wasLiked) {
           likedBy.remove(userId);
+          transaction.update(videoRef, {
+            'likedBy': likedBy.toList(),
+            'likes': FieldValue.increment(-1),
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
         } else {
           likedBy.add(userId);
+          transaction.update(videoRef, {
+            'likedBy': likedBy.toList(),
+            'likes': FieldValue.increment(1),
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
         }
-
-        // Update the document
-        transaction.update(videoRef, {
-          'likedBy': likedBy.toList(),
-        });
       });
     } catch (e) {
       throw 'Failed to toggle like: $e';
@@ -614,7 +625,6 @@ class FirestoreService {
           .map((doc) => Video.fromFirestore(doc))
           .toList();
     } catch (e) {
-      debugPrint('Error searching videos: $e');
       throw 'Failed to search videos: $e';
     }
   }
@@ -642,7 +652,6 @@ class FirestoreService {
         ...doc.data(),
       }).toList();
     } catch (e) {
-      debugPrint('Error searching users: $e');
       throw 'Failed to search users: $e';
     }
   }
@@ -654,7 +663,6 @@ class FirestoreService {
     int limit = 10,
   }) async {
     try {
-      debugPrint('Querying videos for user: $userId, limit: $limit');
       
       Query<Map<String, dynamic>> query = _videosCollection
           .where('userId', isEqualTo: userId)
@@ -668,7 +676,6 @@ class FirestoreService {
       final querySnapshot = await query.get();
       return querySnapshot.docs.map((doc) => Video.fromFirestore(doc)).toList();
     } catch (e) {
-      debugPrint('Error getting user videos: $e');
       if (e.toString().contains('failed-precondition') && 
           e.toString().contains('index')) {
         throw 'Database index for user videos is being built. Please try again in a few minutes. '
@@ -691,7 +698,6 @@ class FirestoreService {
           .get();
       return doc.exists;
     } catch (e) {
-      debugPrint('Error checking follow status: $e');
       return false;
     }
   }
@@ -746,7 +752,6 @@ class FirestoreService {
         }
       });
     } catch (e) {
-      debugPrint('Error toggling follow: $e');
       throw 'Failed to update follow status: $e';
     }
   }
@@ -796,7 +801,6 @@ class FirestoreService {
           .map((doc) => Video.fromFirestore(doc))
           .toList();
     } catch (e) {
-      debugPrint('Error getting following videos: $e');
       rethrow;
     }
   }
