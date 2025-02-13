@@ -31,12 +31,21 @@ export interface VideoDocument extends VideoMetadata {
   savedBy: string[];
   comments: number;
   tweetId: string;
-  authorId: string;
+  userId: string;
 }
 
 interface BatchProcessingMessage {
   batchId: string;
   timestamp: string;
+}
+
+interface UserProfile {
+  username: string;
+  email?: string;
+  bio: string;
+  photoURL: string;
+  createdAt: FieldValue;
+  updatedAt: FieldValue;
 }
 
 /**
@@ -126,6 +135,40 @@ export async function getVideoMetadata(url: string): Promise<VideoMetadata | nul
 }
 
 /**
+ * Find or create a user profile by username
+ * @param db - Firestore instance
+ * @param username - Username to look up
+ * @returns The user's ID
+ */
+async function findOrCreateUser(db: FirebaseFirestore.Firestore, username: string): Promise<string> {
+  // First try to find the user by username
+  const usersSnapshot = await db.collection('users')
+    .where('username', '==', username)
+    .limit(1)
+    .get();
+
+  // If user exists, return their ID
+  if (!usersSnapshot.empty) {
+    return usersSnapshot.docs[0].id;
+  }
+
+  // User doesn't exist, create a new profile
+  console.log(`Creating new user profile for username: ${username}`);
+  const newUserRef = db.collection('users').doc();
+  const userProfile: UserProfile = {
+    username: username,
+    bio: '',
+    photoURL: '',
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp()
+  };
+
+  await newUserRef.set(userProfile);
+  console.log(`Created new user with ID: ${newUserRef.id}`);
+  return newUserRef.id;
+}
+
+/**
  * Cloud Function triggered by Pub/Sub when a batch of tweets is ready for processing.
  * This function listens to messages from the tweet_batch_processed topic, which are
  * published after tweet batches are saved to Firestore.
@@ -156,10 +199,7 @@ export const processTweetBatch = functions.pubsub
       // Log details about each tweet
       allTweetsSnapshot.docs.forEach(doc => {
         const tweet = doc.data();
-        console.log(`Tweet ${doc.id}:`);
-        console.log('- isProcessed:', typeof tweet.isProcessed === 'undefined' ? 'undefined' : tweet.isProcessed);
-        console.log('- processingStatus:', tweet.processingStatus || 'undefined');
-        console.log('- urls:', tweet.urls || []);
+        console.log(`Tweet ${doc.id} - isProcessed: ${tweet.isProcessed}, processingStatus: ${tweet.processingStatus || 'undefined'}`);
       });
 
       // Query tweets from this batch that are not processed
@@ -186,6 +226,10 @@ export const processTweetBatch = functions.pubsub
         const tweet = tweetDoc.data();
         const urls = (tweet.urls || []).filter((url: string) => url.startsWith('http'));
         
+        // Get or create user before processing URLs
+        const userId = await findOrCreateUser(db, tweet.originalAuthor.username);
+        console.log(`Using user ID: ${userId} for username: ${tweet.originalAuthor.username}`);
+        
         // Process each URL in the tweet
         for (const url of urls) {
           const metadata = await getVideoMetadata(url);
@@ -203,7 +247,7 @@ export const processTweetBatch = functions.pubsub
               savedBy: [],
               comments: 0,
               tweetId: tweetDoc.id,
-              authorId: tweet.originalAuthor.username,
+              userId: userId,
               ...(metadata.description && { description: metadata.description })
             };
 
