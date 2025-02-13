@@ -34,7 +34,7 @@ interface VideoDocument extends VideoMetadata {
   savedBy: string[];
   comments: number;
   tweetId: string;
-  authorId: string;
+  userId: string;
 }
 ```
 
@@ -138,7 +138,7 @@ export const onTweetCreated = functions.firestore
             savedBy: [],
             comments: 0,
             tweetId: context.params.tweetId,
-            authorId: tweet.originalAuthor.profileId
+            userId: tweet.originalAuthor.profileId
           };
           
           // Add to batch
