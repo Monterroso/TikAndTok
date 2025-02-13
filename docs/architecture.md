@@ -1,10 +1,10 @@
 # Application Architecture Overview
 
-This document outlines the overall structure and design of our D&D TikTok clone application. It is intended to provide a clear view of the project organization, the responsibilities of each component, and the architectural patterns we follow. This overview will help everyone—developers and AI assistants alike—understand how the project is organized.
+This document outlines the overall structure and design of our technical showcase video platform. It is intended to provide a clear view of the project organization, the responsibilities of each component, and the architectural patterns we follow.
 
 ## Project Purpose
 
-Our D&D TikTok clone is a Flutter application using Firebase as its backend. It centers on the consumer journey for tabletop roleplaying game enthusiasts. The app allows users to browse, watch, and interact with videos related to Dungeons & Dragons and other tabletop RPGs.
+Our platform is a Flutter application using Firebase as its backend, centered on enabling developers to showcase their technical implementations through short-form videos. The app allows users to browse, watch, and interact with videos demonstrating various technical solutions, frameworks, and architectural patterns.
 
 ## Directory Structure
 
@@ -394,13 +394,31 @@ TikAndTok/
    - Manages likes using Set<String> for efficient storage
    - Provides helper methods for like status and count
    - Currently supports .mov format (iPhone default)
-   - (TODO) Define and implement video size limitations based on:
-     - Firebase Storage quotas
-     - App performance considerations
-     - User experience (upload/download times)
-     - Mobile data usage optimization
+   - Integrates with Gemini-powered technical analysis
 
-2. **Video Feed** (`widgets/video_viewing/video_feed.dart`):
+2. **VideoAnalysis Model** (`models/video_analysis.dart`):
+   - Stores technical analysis of videos
+   - Tracks implementation details
+   - Manages tech stack information
+   - Records architectural patterns
+   - Lists identified best practices
+   - Handles processing state and errors
+
+3. **Technical Metadata Display** (`widgets/video_viewing/technical_metadata_display.dart`):
+   - Shows implementation overview
+   - Displays tech stack tags
+   - Lists architectural patterns
+   - Highlights best practices
+   - Provides loading and error states
+
+4. **AI Comment Integration**:
+   - Triggers on "Just Submit" keyword
+   - Provides technical insights
+   - References video analysis data
+   - Maintains conversation context
+   - Uses Gemini for response generation
+
+5. **Video Feed** (`widgets/video_viewing/video_feed.dart`):
    - Uses PageView.builder for smooth vertical scrolling
    - Manages video state and transitions
    - Handles current video tracking
@@ -409,13 +427,13 @@ TikAndTok/
    - Shows heart animation on like actions
    - Prepares for creator data prefetching
 
-3. **Video Background** (`widgets/video_viewing/video_background.dart`):
+6. **Video Background** (`widgets/video_viewing/video_background.dart`):
    - Manages video player lifecycle
    - Implements auto-play and looping
    - Provides error handling with user-friendly messages
    - Shows loading states on black background
 
-4. **Creator Info Display** (`widgets/video_viewing/creator_info_group.dart`):
+7. **Creator Info Display** (`widgets/video_viewing/creator_info_group.dart`):
    - Real-time creator profile streaming
    - Loading states with skeleton UI
    - Error handling with user feedback
@@ -423,7 +441,7 @@ TikAndTok/
    - Username/display name handling
    - Video title and description display
 
-5. **Like Animation** (`widgets/video_viewing/like_animation.dart`):
+8. **Like Animation** (`widgets/video_viewing/like_animation.dart`):
    - Implements TikTok-style heart animations
    - Handles both button and double-tap triggers
    - Provides haptic feedback
@@ -431,7 +449,7 @@ TikAndTok/
    - Animates like count changes
    - Manages animation states and cleanup
 
-6. **Front Page** (`screens/video_viewing_screen.dart`):
+9. **Front Page** (`screens/video_viewing_screen.dart`):
    - Integrates with Firestore for video data
    - Manages current video state
    - Coordinates video feed and creator info

@@ -109,4 +109,30 @@ This document establishes our coding standards, integration protocols, and best 
     json_serializable: ^6.7.1
   ```
 
+## Technical Video Analysis Guidelines
+
+### Video Content
+- Focus on clear technical demonstrations
+- Include code walkthroughs where relevant
+- Highlight architectural decisions
+- Demonstrate best practices
+
+### AI Integration
+- Keep Gemini prompts focused and technical
+- Maintain consistent technical terminology
+- Use lower temperature for precise responses
+- Include proper context in AI interactions
+
+### Technical Metadata
+- Use standardized tech stack categories
+- Keep architecture patterns well-defined
+- Document best practices clearly
+- Maintain consistent technical terminology
+
+### Comment Triggers
+- Use clear trigger keywords
+- Keep AI responses technically focused
+- Maintain professional tone
+- Reference relevant technical details
+
 --- 

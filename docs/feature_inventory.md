@@ -256,6 +256,35 @@ This document tracks all implemented and planned features for the application. I
     - Video feed state
     - Error handling
 
+- [ ] **Technical Video Analysis with Gemini**
+  *Description:* Automatically analyze technical showcase videos to extract implementation details, tech stack, and best practices.
+  **Sub-Tasks:**
+  - [ ] Implement video analysis models
+    *Location:* `lib/models/video_analysis.dart`
+    Features to implement:
+    - Freezed model for analysis data
+    - Technical metadata structure
+    - Processing state handling
+  - [ ] Create technical metadata display
+    *Location:* `lib/widgets/video_viewing/technical_metadata_display.dart`
+    Features to implement:
+    - Implementation overview section
+    - Tech stack chips
+    - Architecture patterns display
+    - Best practices list
+  - [ ] Set up Gemini integration
+    *Location:* `functions/src/video_processing.ts`
+    Features to implement:
+    - Video content analysis
+    - Technical metadata extraction
+    - Error handling
+  - [ ] Add AI comment responses
+    *Location:* `functions/src/video_processing.ts`
+    Features to implement:
+    - Comment trigger detection
+    - Context-aware responses
+    - Technical discussion support
+
 ## Should-Have Features
 
 - [✓] **Saving/Bookmarking Video Content**  
