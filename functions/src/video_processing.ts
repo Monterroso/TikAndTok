@@ -138,18 +138,45 @@ export const processTweetBatch = functions.pubsub
     console.log('Processing tweet batch:', data);
 
     try {
-      // Query tweets from this batch
+      // First get all tweets from this batch to check their status
+      const allTweetsSnapshot = await db.collection('tweets')
+        .where('batchId', '==', data.batchId)
+        .get();
+
+      console.log(`Found ${allTweetsSnapshot.size} total tweets in batch ${data.batchId}`);
+      
+      if (allTweetsSnapshot.empty) {
+        console.log('No tweets found at all for this batch. This could mean:');
+        console.log('1. The tweets have not been saved yet (race condition)');
+        console.log('2. The batchId is incorrect');
+        console.log('3. The tweets were saved to a different collection');
+        return;
+      }
+
+      // Log details about each tweet
+      allTweetsSnapshot.docs.forEach(doc => {
+        const tweet = doc.data();
+        console.log(`Tweet ${doc.id}:`);
+        console.log('- isProcessed:', typeof tweet.isProcessed === 'undefined' ? 'undefined' : tweet.isProcessed);
+        console.log('- processingStatus:', tweet.processingStatus || 'undefined');
+        console.log('- urls:', tweet.urls || []);
+      });
+
+      // Query tweets from this batch that are not processed
       const tweetsSnapshot = await db.collection('tweets')
         .where('batchId', '==', data.batchId)
         .where('isProcessed', '==', false)
         .get();
 
       if (tweetsSnapshot.empty) {
-        console.log(`No unprocessed tweets found in batch ${data.batchId}`);
+        console.log(`No unprocessed tweets found in batch ${data.batchId}. This could mean either:`);
+        console.log('1. All tweets are already processed');
+        console.log('2. The isProcessed field is undefined instead of false');
+        console.log('3. The tweets have not been saved yet');
         return;
       }
 
-      console.log(`Processing ${tweetsSnapshot.size} tweets from batch ${data.batchId}`);
+      console.log(`Processing ${tweetsSnapshot.size} unprocessed tweets from batch ${data.batchId}`);
       const batch = db.batch();
       let processedCount = 0;
       let errorCount = 0;
