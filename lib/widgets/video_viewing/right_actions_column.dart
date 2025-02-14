@@ -4,7 +4,6 @@ import '../../services/firestore_service.dart';
 import 'interaction_animation.dart';
 import 'comments/comments_sheet.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'technical_details_sheet.dart';
 import 'technical_metadata_display.dart';
 
 /// RightActionsColumn groups interactive buttons such as like, comments,
