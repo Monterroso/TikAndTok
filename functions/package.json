@@ -10,6 +10,7 @@
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
     "test": "jest",
+    "test:video": "npm run build && node lib/test_utils/test_video_trigger.js",
     "create-test-tweet": "npm run build && node lib/test_utils/create_test_tweet.js",
     "check-emulator": "npm run build && node lib/test_utils/check_emulator_data.js"
   },
