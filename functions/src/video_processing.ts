@@ -355,6 +355,25 @@ async function fetchVideoContent(url: string): Promise<Buffer> {
 }
 
 /**
+ * Clean array items by:
+ * 1. Removing any descriptive headers
+ * 2. Removing markdown bullets and whitespace
+ * 3. Filtering out empty items
+ */
+function cleanArrayItems(items: string[]): string[] {
+  if (!Array.isArray(items)) return [];
+  
+  return items
+    .filter(item => item && typeof item === 'string')
+    // Remove items that look like headers or descriptions
+    .filter(item => !item.toLowerCase().includes('including:') && !item.toLowerCase().includes('such as:'))
+    // Clean up markdown bullets and whitespace
+    .map(item => item.replace(/^[*•-]\s*/, '').trim())
+    // Filter out empty strings
+    .filter(item => item.length > 0);
+}
+
+/**
  * Analyzes video content using Gemini
  * @param videoData - The video document data
  * @returns Promise resolving to structured analysis
@@ -379,10 +398,18 @@ Format the response as a JSON object with these fields:
 {
   "implementationOverview": "Clear explanation of what was implemented",
   "technicalDetails": "Detailed technical analysis",
-  "techStack": ["Array of technologies used"],
-  "architecturePatterns": ["Array of architecture patterns identified"],
-  "bestPractices": ["Array of best practices demonstrated"]
-}`;
+  "techStack": ["technology1", "technology2"],
+  "architecturePatterns": ["pattern1", "pattern2"],
+  "bestPractices": ["practice1", "practice2"]
+}
+
+Important formatting rules:
+- Arrays should contain ONLY the items themselves, no descriptions or headers
+- Do not use bullet points or markdown formatting
+- Each array item should be a simple string
+- Do not include numbering or prefixes in array items
+
+Return ONLY the JSON object, no additional text or formatting.`;
 
     console.log('Sending to Gemini for analysis...');
     const result = await model.generateContent({
@@ -407,12 +434,17 @@ Format the response as a JSON object with these fields:
       .map(part => part.text)
       .join('');
     
+    // Clean up the response text by removing any markdown formatting
+    const cleanText = text.replace(/```json\n|\n```/g, '').trim();
+    
     // Parse the analysis text into structured format
-    // Note: Gemini might not return perfect JSON, so we need to parse carefully
     let analysis: any;
     try {
-      analysis = JSON.parse(text);
+      analysis = JSON.parse(cleanText);
     } catch (e) {
+      console.error('Failed to parse Gemini response as JSON:', e);
+      console.log('Raw response:', text);
+      
       // If JSON parsing fails, attempt to structure the response
       const sections = text.split('\n\n');
       analysis = {
@@ -424,12 +456,13 @@ Format the response as a JSON object with these fields:
       };
     }
     
-    return {
-      implementationOverview: analysis.implementationOverview,
-      technicalDetails: analysis.technicalDetails,
-      techStack: analysis.techStack || [],
-      architecturePatterns: analysis.architecturePatterns || [],
-      bestPractices: analysis.bestPractices || [],
+    // Ensure all arrays are properly initialized and cleaned
+    const finalAnalysis: Partial<VideoAnalysis> = {
+      implementationOverview: analysis.implementationOverview || '',
+      technicalDetails: analysis.technicalDetails || '',
+      techStack: cleanArrayItems(analysis.techStack),
+      architecturePatterns: cleanArrayItems(analysis.architecturePatterns),
+      bestPractices: cleanArrayItems(analysis.bestPractices),
       isProcessing: false,
       lastUpdated: Timestamp.now(),
       _internal: {
@@ -444,6 +477,8 @@ Format the response as a JSON object with these fields:
         }
       }
     };
+
+    return finalAnalysis;
   } catch (error) {
     console.error('Error analyzing video content:', error);
     throw error;

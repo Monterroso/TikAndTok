@@ -28,9 +28,9 @@
         "node_modules",
         ".git",
         "firebase-debug.log",
-        "firebase-debug.*.log",
-        "*.local"
-      ]
+        "firebase-debug.*.log"
+      ],
+      "envFilename": ".env.local"
     }
   ],
   "firestore": {
