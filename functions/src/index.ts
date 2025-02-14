@@ -8,7 +8,7 @@
 import * as functions from "firebase-functions/v1";
 import * as admin from "firebase-admin";
 import * as logger from "firebase-functions/logger";
-import { processTweetBatch, processVideoWithGemini } from './video_processing';
+import { processTweetBatch, processVideoWithGemini, handleTechnicalDiscussion } from './video_processing';
 
 // Initialize Firebase Admin first
 admin.initializeApp();
@@ -57,4 +57,4 @@ export const createUserProfile = functions.auth
   });
 
 // Export video processing functions
-export { processTweetBatch, processVideoWithGemini };
+export { processTweetBatch, processVideoWithGemini, handleTechnicalDiscussion };

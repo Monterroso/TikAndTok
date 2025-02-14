@@ -30,8 +30,9 @@ export interface VideoDocument extends VideoMetadata {
   likedBy: string[];
   savedBy: string[];
   comments: number;
-  tweetId: string;
+  tweetId?: string;
   userId: string;
+  analysis?: VideoAnalysis;
 }
 
 interface BatchProcessingMessage {
@@ -52,6 +53,7 @@ interface UserProfile {
  * Interfaces for technical analysis
  */
 interface VideoAnalysis {
+  // Required fields matching Flutter model
   implementationOverview?: string;
   technicalDetails?: string;
   techStack: string[];
@@ -59,6 +61,21 @@ interface VideoAnalysis {
   bestPractices: string[];
   isProcessing: boolean;
   error?: string;
+  lastUpdated: Timestamp;
+
+  // Additional fields for backend processing
+  _internal?: {
+    processingMetadata?: {
+      startTime: Timestamp;
+      attempts: number;
+      lastError?: string;
+    };
+    rawAnalysis?: {
+      geminiResponse?: string;
+      confidence?: number;
+      processingDuration?: number;
+    };
+  };
 }
 
 /**
@@ -308,29 +325,32 @@ export const processVideoWithGemini = functions.firestore
   .document('videos/{videoId}')
   .onCreate(async (snap, context) => {
     const videoId = context.params.videoId;
-    const videoData = snap.data() as VideoDocument;
+    const videoData = snap.data();
     const db = getFirestore();
-
     console.log(`Starting technical analysis for video: ${videoId}`);
     console.log('Video data:', JSON.stringify(videoData, null, 2));
 
     try {
       // Initialize processing state
       console.log('Initializing processing state...');
-      await db.collection('video_analysis').doc(videoId).set({
-        isProcessing: true,
+      const initialState: VideoAnalysis = {
+        implementationOverview: "Initializing technical analysis...",
+        technicalDetails: "Analysis in progress",
         techStack: [],
         architecturePatterns: [],
         bestPractices: [],
-      });
+        isProcessing: true,
+        lastUpdated: Timestamp.now(),
+        _internal: {
+          processingMetadata: {
+            startTime: Timestamp.now(),
+            attempts: 1,
+          }
+        }
+      };
+      
+      await db.collection('video_analysis').doc(videoId).set(initialState);
       console.log('Processing state initialized');
-
-      // TODO: Initialize Vertex AI with Gemini
-      // const vertexAI = new VertexAI({...});
-      // const model = vertexAI.getGenerativeModel('gemini-pro-vision');
-
-      // TODO: Process video with Gemini
-      // const result = await model.generateContent({...});
 
       // For now, set mock data
       console.log('Setting mock analysis data...');
@@ -341,22 +361,121 @@ export const processVideoWithGemini = functions.firestore
         architecturePatterns: ["MVVM", "Clean Architecture"],
         bestPractices: ["State Management", "Error Handling"],
         isProcessing: false,
+        lastUpdated: Timestamp.now(),
+        _internal: {
+          processingMetadata: {
+            startTime: initialState._internal?.processingMetadata?.startTime || Timestamp.now(),
+            attempts: 1,
+          },
+          rawAnalysis: {
+            geminiResponse: "Mock response for testing",
+            confidence: 0.95,
+            processingDuration: 1000,
+          }
+        }
       };
 
-      // Update Firestore with analysis results
-      console.log('Saving analysis results...');
+      // Store the analysis
       await db.collection('video_analysis').doc(videoId).set(analysis);
-      console.log('Analysis completed successfully');
+      console.log('Analysis stored successfully');
 
     } catch (error) {
       console.error('Error processing video:', error);
-      console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace available');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
+      // Update analysis with error state
       await db.collection('video_analysis').doc(videoId).set({
-        isProcessing: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
+        implementationOverview: 'Error during technical analysis',
+        technicalDetails: errorMessage,
         techStack: [],
         architecturePatterns: [],
         bestPractices: [],
+        isProcessing: false,
+        error: errorMessage,
+        lastUpdated: Timestamp.now(),
+        _internal: {
+          processingMetadata: {
+            startTime: Timestamp.now(),
+            attempts: 1,
+            lastError: errorMessage
+          }
+        }
       });
+    }
+  });
+
+export const handleTechnicalDiscussion = functions.firestore
+  .document('videos/{videoId}/comments/{commentId}')
+  .onCreate(async (snap, context) => {
+    const { videoId, commentId } = context.params;
+    const commentData = snap.data();
+    const { text } = commentData;
+    const db = getFirestore();
+
+    // Only proceed if comment contains "just submit"
+    if (!text.toLowerCase().includes('just submit')) {
+      return;
+    }
+
+    console.log(`Processing technical implementation question for video ${videoId}`);
+
+    try {
+      // Get analysis from video_analysis collection
+      const analysisDoc = await db.collection('video_analysis').doc(videoId).get();
+      if (!analysisDoc.exists) {
+        throw new Error('Technical analysis not found');
+      }
+
+      const analysis = analysisDoc.data() as VideoAnalysis;
+      if (analysis.isProcessing) {
+        throw new Error('Technical analysis is still processing');
+      }
+      if (analysis.error) {
+        throw new Error(`Technical analysis failed: ${analysis.error}`);
+      }
+
+      // Generate response using the analysis data
+      const response = `Technical Implementation Analysis:
+
+${analysis.implementationOverview ? `Overview:
+${analysis.implementationOverview}
+
+` : ''}${analysis.techStack.length > 0 ? `Tech Stack:
+${analysis.techStack.map((tech: string) => `• ${tech}`).join('\n')}
+
+` : ''}${analysis.architecturePatterns.length > 0 ? `Architecture Patterns:
+${analysis.architecturePatterns.map((pattern: string) => `• ${pattern}`).join('\n')}
+
+` : ''}${analysis.technicalDetails ? `Technical Details:
+${analysis.technicalDetails}
+
+` : ''}${analysis.bestPractices.length > 0 ? `Best Practices:
+${analysis.bestPractices.map((practice: string) => `• ${practice}`).join('\n')}
+
+` : ''}Feel free to ask for more specific details about any aspect of the implementation.`;
+
+      // Add response as a regular reply comment
+      await db.collection('videos').doc(videoId)
+        .collection('comments').add({
+          text: response,
+          userId: 'system',
+          parentId: commentId,
+          createdAt: Timestamp.now(),
+        });
+
+      console.log('Technical implementation details provided successfully');
+
+    } catch (error) {
+      console.error('Error providing technical implementation details:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
+      // Add error response as a comment
+      await db.collection('videos').doc(videoId)
+        .collection('comments').add({
+          text: `Sorry, I couldn't provide technical implementation details: ${errorMessage}`,
+          userId: 'system',
+          parentId: commentId,
+          createdAt: Timestamp.now(),
+        });
     }
   }); 
