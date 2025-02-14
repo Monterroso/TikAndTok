@@ -49,6 +49,19 @@ interface UserProfile {
 }
 
 /**
+ * Interfaces for technical analysis
+ */
+interface VideoAnalysis {
+  implementationOverview?: string;
+  technicalDetails?: string;
+  techStack: string[];
+  architecturePatterns: string[];
+  bestPractices: string[];
+  isProcessing: boolean;
+  error?: string;
+}
+
+/**
  * Resolve a potentially shortened URL to its final destination
  * @param url - The URL to resolve
  * @returns The resolved URL or the original if resolution fails
@@ -288,5 +301,62 @@ export const processTweetBatch = functions.pubsub
       // We should implement a dead-letter queue or retry mechanism here
       // For now, we'll just log the error
       throw error; // This will trigger Pub/Sub's retry mechanism
+    }
+  });
+
+export const processVideoWithGemini = functions.firestore
+  .document('videos/{videoId}')
+  .onCreate(async (snap, context) => {
+    const videoId = context.params.videoId;
+    const videoData = snap.data() as VideoDocument;
+    const db = getFirestore();
+
+    console.log(`Starting technical analysis for video: ${videoId}`);
+    console.log('Video data:', JSON.stringify(videoData, null, 2));
+
+    try {
+      // Initialize processing state
+      console.log('Initializing processing state...');
+      await db.collection('video_analysis').doc(videoId).set({
+        isProcessing: true,
+        techStack: [],
+        architecturePatterns: [],
+        bestPractices: [],
+      });
+      console.log('Processing state initialized');
+
+      // TODO: Initialize Vertex AI with Gemini
+      // const vertexAI = new VertexAI({...});
+      // const model = vertexAI.getGenerativeModel('gemini-pro-vision');
+
+      // TODO: Process video with Gemini
+      // const result = await model.generateContent({...});
+
+      // For now, set mock data
+      console.log('Setting mock analysis data...');
+      const analysis: VideoAnalysis = {
+        implementationOverview: "Technical implementation analysis pending Gemini integration",
+        technicalDetails: "Detailed analysis will be available once Gemini processing is implemented",
+        techStack: ["Flutter", "Firebase"],
+        architecturePatterns: ["MVVM", "Clean Architecture"],
+        bestPractices: ["State Management", "Error Handling"],
+        isProcessing: false,
+      };
+
+      // Update Firestore with analysis results
+      console.log('Saving analysis results...');
+      await db.collection('video_analysis').doc(videoId).set(analysis);
+      console.log('Analysis completed successfully');
+
+    } catch (error) {
+      console.error('Error processing video:', error);
+      console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace available');
+      await db.collection('video_analysis').doc(videoId).set({
+        isProcessing: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
+        techStack: [],
+        architecturePatterns: [],
+        bestPractices: [],
+      });
     }
   }); 
