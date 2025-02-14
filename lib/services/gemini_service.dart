@@ -23,7 +23,6 @@ class GeminiService {
     try {
       await _firestore.collection('video_analysis').doc(videoId).set(
         VideoAnalysis(
-          videoId: videoId,
           isProcessing: true,
         ).toJson()
       );
@@ -32,7 +31,6 @@ class GeminiService {
     } catch (e) {
       await _firestore.collection('video_analysis').doc(videoId).set(
         VideoAnalysis(
-          videoId: videoId,
           isProcessing: false,
           error: e.toString(),
         ).toJson()

@@ -6,7 +6,6 @@ part 'video_analysis.g.dart';
 @freezed
 class VideoAnalysis with _$VideoAnalysis {
   const factory VideoAnalysis({
-    required String videoId,
     String? implementationOverview,
     String? technicalDetails,
     @Default([]) List<String> techStack,

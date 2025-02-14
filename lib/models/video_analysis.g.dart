@@ -8,7 +8,6 @@ part of 'video_analysis.dart';
 
 _$VideoAnalysisImpl _$$VideoAnalysisImplFromJson(Map<String, dynamic> json) =>
     _$VideoAnalysisImpl(
-      videoId: json['videoId'] as String,
       implementationOverview: json['implementationOverview'] as String?,
       technicalDetails: json['technicalDetails'] as String?,
       techStack: (json['techStack'] as List<dynamic>?)
@@ -29,7 +28,6 @@ _$VideoAnalysisImpl _$$VideoAnalysisImplFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$$VideoAnalysisImplToJson(_$VideoAnalysisImpl instance) =>
     <String, dynamic>{
-      'videoId': instance.videoId,
       'implementationOverview': instance.implementationOverview,
       'technicalDetails': instance.technicalDetails,
       'techStack': instance.techStack,

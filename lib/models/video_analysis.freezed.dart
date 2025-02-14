@@ -20,7 +20,6 @@ VideoAnalysis _$VideoAnalysisFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$VideoAnalysis {
-  String get videoId => throw _privateConstructorUsedError;
   String? get implementationOverview => throw _privateConstructorUsedError;
   String? get technicalDetails => throw _privateConstructorUsedError;
   List<String> get techStack => throw _privateConstructorUsedError;
@@ -46,8 +45,7 @@ abstract class $VideoAnalysisCopyWith<$Res> {
       _$VideoAnalysisCopyWithImpl<$Res, VideoAnalysis>;
   @useResult
   $Res call(
-      {String videoId,
-      String? implementationOverview,
+      {String? implementationOverview,
       String? technicalDetails,
       List<String> techStack,
       List<String> architecturePatterns,
@@ -71,7 +69,6 @@ class _$VideoAnalysisCopyWithImpl<$Res, $Val extends VideoAnalysis>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? videoId = null,
     Object? implementationOverview = freezed,
     Object? technicalDetails = freezed,
     Object? techStack = null,
@@ -81,10 +78,6 @@ class _$VideoAnalysisCopyWithImpl<$Res, $Val extends VideoAnalysis>
     Object? error = freezed,
   }) {
     return _then(_value.copyWith(
-      videoId: null == videoId
-          ? _value.videoId
-          : videoId // ignore: cast_nullable_to_non_nullable
-              as String,
       implementationOverview: freezed == implementationOverview
           ? _value.implementationOverview
           : implementationOverview // ignore: cast_nullable_to_non_nullable
@@ -126,8 +119,7 @@ abstract class _$$VideoAnalysisImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {String videoId,
-      String? implementationOverview,
+      {String? implementationOverview,
       String? technicalDetails,
       List<String> techStack,
       List<String> architecturePatterns,
@@ -149,7 +141,6 @@ class __$$VideoAnalysisImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? videoId = null,
     Object? implementationOverview = freezed,
     Object? technicalDetails = freezed,
     Object? techStack = null,
@@ -159,10 +150,6 @@ class __$$VideoAnalysisImplCopyWithImpl<$Res>
     Object? error = freezed,
   }) {
     return _then(_$VideoAnalysisImpl(
-      videoId: null == videoId
-          ? _value.videoId
-          : videoId // ignore: cast_nullable_to_non_nullable
-              as String,
       implementationOverview: freezed == implementationOverview
           ? _value.implementationOverview
           : implementationOverview // ignore: cast_nullable_to_non_nullable
@@ -199,8 +186,7 @@ class __$$VideoAnalysisImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$VideoAnalysisImpl implements _VideoAnalysis {
   const _$VideoAnalysisImpl(
-      {required this.videoId,
-      this.implementationOverview,
+      {this.implementationOverview,
       this.technicalDetails,
       final List<String> techStack = const [],
       final List<String> architecturePatterns = const [],
@@ -214,8 +200,6 @@ class _$VideoAnalysisImpl implements _VideoAnalysis {
   factory _$VideoAnalysisImpl.fromJson(Map<String, dynamic> json) =>
       _$$VideoAnalysisImplFromJson(json);
 
-  @override
-  final String videoId;
   @override
   final String? implementationOverview;
   @override
@@ -256,7 +240,7 @@ class _$VideoAnalysisImpl implements _VideoAnalysis {
 
   @override
   String toString() {
-    return 'VideoAnalysis(videoId: $videoId, implementationOverview: $implementationOverview, technicalDetails: $technicalDetails, techStack: $techStack, architecturePatterns: $architecturePatterns, bestPractices: $bestPractices, isProcessing: $isProcessing, error: $error)';
+    return 'VideoAnalysis(implementationOverview: $implementationOverview, technicalDetails: $technicalDetails, techStack: $techStack, architecturePatterns: $architecturePatterns, bestPractices: $bestPractices, isProcessing: $isProcessing, error: $error)';
   }
 
   @override
@@ -264,7 +248,6 @@ class _$VideoAnalysisImpl implements _VideoAnalysis {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$VideoAnalysisImpl &&
-            (identical(other.videoId, videoId) || other.videoId == videoId) &&
             (identical(other.implementationOverview, implementationOverview) ||
                 other.implementationOverview == implementationOverview) &&
             (identical(other.technicalDetails, technicalDetails) ||
@@ -284,7 +267,6 @@ class _$VideoAnalysisImpl implements _VideoAnalysis {
   @override
   int get hashCode => Object.hash(
       runtimeType,
-      videoId,
       implementationOverview,
       technicalDetails,
       const DeepCollectionEquality().hash(_techStack),
@@ -311,8 +293,7 @@ class _$VideoAnalysisImpl implements _VideoAnalysis {
 
 abstract class _VideoAnalysis implements VideoAnalysis {
   const factory _VideoAnalysis(
-      {required final String videoId,
-      final String? implementationOverview,
+      {final String? implementationOverview,
       final String? technicalDetails,
       final List<String> techStack,
       final List<String> architecturePatterns,
@@ -323,8 +304,6 @@ abstract class _VideoAnalysis implements VideoAnalysis {
   factory _VideoAnalysis.fromJson(Map<String, dynamic> json) =
       _$VideoAnalysisImpl.fromJson;
 
-  @override
-  String get videoId;
   @override
   String? get implementationOverview;
   @override
