@@ -11,6 +11,8 @@ import 'controllers/liked_videos_feed_controller.dart';
 import 'controllers/home_feed_controller.dart';
 import 'controllers/search_controller.dart';
 import 'services/firestore_service.dart';
+import 'services/gemini_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,6 +33,9 @@ class MyApp extends StatelessWidget {
         StreamProvider<User?>.value(
           value: FirebaseAuth.instance.userChanges(),
           initialData: FirebaseAuth.instance.currentUser,
+        ),
+        Provider<GeminiService>(
+          create: (_) => GeminiService(FirebaseFirestore.instance),
         ),
       ],
       child: FutureBuilder<(VideoCollectionManager, SharedPreferences)>(

@@ -11,7 +11,12 @@ class GeminiService {
         .collection('video_analysis')
         .doc(videoId)
         .snapshots()
-        .map((doc) => VideoAnalysis.fromJson(doc.data()!));
+        .map((doc) {
+          if (!doc.exists || doc.data() == null) {
+            throw Exception('No technical analysis available for this video yet.');
+          }
+          return VideoAnalysis.fromJson(doc.data()!);
+        });
   }
 
   Future<void> processVideo(String videoId, String videoUrl) async {
