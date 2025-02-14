@@ -4,13 +4,13 @@
     "lint": "eslint --ext .js,.ts .",
     "build": "tsc",
     "build:watch": "tsc --watch",
-    "serve": "npm run build && firebase emulators:start --only functions",
+    "serve": "rm -rf lib && npm run build && firebase emulators:start --only functions,firestore,storage",
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
     "test": "jest",
-    "test:video": "npm run build && node lib/test_utils/test_video_trigger.js",
+    "test:video": "rm -rf lib && npm run build && node lib/test_utils/test_video_trigger.js",
     "create-test-tweet": "npm run build && node lib/test_utils/create_test_tweet.js",
     "check-emulator": "npm run build && node lib/test_utils/check_emulator_data.js"
   },
@@ -19,6 +19,8 @@
   },
   "main": "lib/index.js",
   "dependencies": {
+    "@google-cloud/vertexai": "^1.9.3",
+    "dotenv": "^16.4.7",
     "firebase-admin": "^11.8.0",
     "firebase-functions": "^5.1.0",
     "node-fetch": "^2.6.7"

@@ -1,6 +1,7 @@
 import * as functions from 'firebase-functions';
 import { getFirestore, Timestamp, FieldValue } from 'firebase-admin/firestore';
 import fetch from 'node-fetch';
+import { VertexAI } from '@google-cloud/vertexai';
 
 const tweet_batch_topic = 'tweet_batch_processed';
 
@@ -77,6 +78,22 @@ interface VideoAnalysis {
     };
   };
 }
+
+// Add Gemini configuration
+const PROJECT_ID = 'tikandtok-684cb';  // Your GCP project ID
+const LOCATION = 'us-central1';    // Your model location
+
+// Initialize Vertex AI with Gemini Pro Vision model for video analysis
+const vertexAI = new VertexAI({project: PROJECT_ID, location: LOCATION});
+const model = vertexAI.preview.getGenerativeModel({
+  model: 'gemini-pro-vision',  // Changed to vision model for video analysis
+  generationConfig: {
+    maxOutputTokens: 2048,
+    temperature: 0.4,
+    topP: 0.8,
+    topK: 40,
+  },
+});
 
 /**
  * Resolve a potentially shortened URL to its final destination
@@ -321,12 +338,156 @@ export const processTweetBatch = functions.pubsub
     }
   });
 
+/**
+ * Fetches video content from Firebase Storage
+ */
+async function fetchVideoContent(url: string): Promise<Buffer> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch video: ${response.statusText}`);
+    }
+    return Buffer.from(await response.arrayBuffer());
+  } catch (error) {
+    console.error('Error fetching video content:', error);
+    throw error;
+  }
+}
+
+/**
+ * Analyzes video content using Gemini
+ * @param videoData - The video document data
+ * @returns Promise resolving to structured analysis
+ */
+async function analyzeVideoContent(videoData: FirebaseFirestore.DocumentData): Promise<Partial<VideoAnalysis>> {
+  try {
+    console.log('Fetching video content...');
+    const videoContent = await fetchVideoContent(videoData.url);
+
+    const prompt = `You are analyzing a technical showcase video.
+Title: ${videoData.title}
+${videoData.description ? `Description: ${videoData.description}\n` : ''}
+
+Please analyze the video content and provide a detailed technical analysis including:
+1. A clear overview of the implementation shown
+2. The technical stack used (identify programming languages, frameworks, libraries seen in the video)
+3. Architecture patterns demonstrated in the code or explained
+4. Best practices shown or discussed
+5. Any specific technical challenges and solutions presented
+
+Format the response as a JSON object with these fields:
+{
+  "implementationOverview": "Clear explanation of what was implemented",
+  "technicalDetails": "Detailed technical analysis",
+  "techStack": ["Array of technologies used"],
+  "architecturePatterns": ["Array of architecture patterns identified"],
+  "bestPractices": ["Array of best practices demonstrated"]
+}`;
+
+    console.log('Sending to Gemini for analysis...');
+    const result = await model.generateContent({
+      contents: [{
+        role: 'user',
+        parts: [
+          { text: prompt },
+          { inlineData: { 
+            mimeType: 'video/mp4',
+            data: videoContent.toString('base64')
+          }}
+        ]
+      }]
+    });
+    
+    const response = await result.response;
+    if (!response.candidates?.[0]?.content?.parts) {
+      throw new Error('Invalid response format from Gemini');
+    }
+    
+    const text = response.candidates[0].content.parts
+      .map(part => part.text)
+      .join('');
+    
+    // Parse the analysis text into structured format
+    // Note: Gemini might not return perfect JSON, so we need to parse carefully
+    let analysis: any;
+    try {
+      analysis = JSON.parse(text);
+    } catch (e) {
+      // If JSON parsing fails, attempt to structure the response
+      const sections = text.split('\n\n');
+      analysis = {
+        implementationOverview: sections[0] || '',
+        technicalDetails: sections[1] || '',
+        techStack: extractTechStack(text),
+        architecturePatterns: extractPatterns(text),
+        bestPractices: extractBestPractices(text)
+      };
+    }
+    
+    return {
+      implementationOverview: analysis.implementationOverview,
+      technicalDetails: analysis.technicalDetails,
+      techStack: analysis.techStack || [],
+      architecturePatterns: analysis.architecturePatterns || [],
+      bestPractices: analysis.bestPractices || [],
+      isProcessing: false,
+      lastUpdated: Timestamp.now(),
+      _internal: {
+        processingMetadata: {
+          startTime: Timestamp.now(),
+          attempts: 1,
+        },
+        rawAnalysis: {
+          geminiResponse: text,
+          confidence: 0.95,
+          processingDuration: Date.now() - Date.now(), // Will be set properly in the main function
+        }
+      }
+    };
+  } catch (error) {
+    console.error('Error analyzing video content:', error);
+    throw error;
+  }
+}
+
+// Helper functions to extract structured data from text if JSON parsing fails
+function extractTechStack(text: string): string[] {
+  const techMatches = text.match(/(?:tech stack|technologies?|using|built with|implemented with)[:]\s*([^.]*)/gi);
+  if (!techMatches) return [];
+  
+  return techMatches
+    .flatMap(match => match.split(/[,:]/).slice(1))
+    .map(tech => tech.trim())
+    .filter(tech => tech.length > 0);
+}
+
+function extractPatterns(text: string): string[] {
+  const patternMatches = text.match(/(?:patterns?|architecture)[:]\s*([^.]*)/gi);
+  if (!patternMatches) return [];
+  
+  return patternMatches
+    .flatMap(match => match.split(/[,:]/).slice(1))
+    .map(pattern => pattern.trim())
+    .filter(pattern => pattern.length > 0);
+}
+
+function extractBestPractices(text: string): string[] {
+  const practiceMatches = text.match(/(?:best practices|practices)[:]\s*([^.]*)/gi);
+  if (!practiceMatches) return [];
+  
+  return practiceMatches
+    .flatMap(match => match.split(/[,:]/).slice(1))
+    .map(practice => practice.trim())
+    .filter(practice => practice.length > 0);
+}
+
 export const processVideoWithGemini = functions.firestore
   .document('videos/{videoId}')
   .onCreate(async (snap, context) => {
     const videoId = context.params.videoId;
     const videoData = snap.data();
     const db = getFirestore();
+    const startTime = Date.now();
     console.log(`Starting technical analysis for video: ${videoId}`);
     console.log('Video data:', JSON.stringify(videoData, null, 2));
 
@@ -352,28 +513,14 @@ export const processVideoWithGemini = functions.firestore
       await db.collection('video_analysis').doc(videoId).set(initialState);
       console.log('Processing state initialized');
 
-      // For now, set mock data
-      console.log('Setting mock analysis data...');
-      const analysis: VideoAnalysis = {
-        implementationOverview: "Technical implementation analysis pending Gemini integration",
-        technicalDetails: "Detailed analysis will be available once Gemini processing is implemented",
-        techStack: ["Flutter", "Firebase"],
-        architecturePatterns: ["MVVM", "Clean Architecture"],
-        bestPractices: ["State Management", "Error Handling"],
-        isProcessing: false,
-        lastUpdated: Timestamp.now(),
-        _internal: {
-          processingMetadata: {
-            startTime: initialState._internal?.processingMetadata?.startTime || Timestamp.now(),
-            attempts: 1,
-          },
-          rawAnalysis: {
-            geminiResponse: "Mock response for testing",
-            confidence: 0.95,
-            processingDuration: 1000,
-          }
-        }
-      };
+      // Perform analysis with Gemini
+      console.log('Starting Gemini analysis...');
+      const analysis = await analyzeVideoContent(videoData);
+      
+      // Add processing duration
+      if (analysis._internal?.rawAnalysis) {
+        analysis._internal.rawAnalysis.processingDuration = Date.now() - startTime;
+      }
 
       // Store the analysis
       await db.collection('video_analysis').doc(videoId).set(analysis);
