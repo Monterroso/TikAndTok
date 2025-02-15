@@ -516,7 +516,13 @@ function extractBestPractices(text: string): string[] {
     .filter(practice => practice.length > 0);
 }
 
-export const processVideoWithGemini = functions.firestore
+export const processVideoWithGemini = functions
+  .runWith({
+    timeoutSeconds: 540,
+    memory: '4GB',  // Increase to 4GB since we're handling video data
+    maxInstances: 1  // Limit concurrent executions to prevent memory issues
+  })
+  .firestore
   .document('videos/{videoId}')
   .onCreate(async (snap, context) => {
     const videoId = context.params.videoId;
@@ -544,7 +550,7 @@ export const processVideoWithGemini = functions.firestore
           }
         }
       };
-      
+
       await db.collection('video_analysis').doc(videoId).set(initialState);
       console.log('Processing state initialized');
 

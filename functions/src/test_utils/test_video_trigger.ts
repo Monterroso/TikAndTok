@@ -101,7 +101,7 @@ async function createTestVideo(config: TestConfig = defaultConfig) {
     
     const testVideo: Partial<VideoDocument> = {
       url: 'https://firebasestorage.googleapis.com/v0/b/tikandtok-684cb.firebasestorage.app/o/videos%2F(27)%20Inbox%20%EF%BD%9C%20marcus.monterroso%40gauntletai.com%20%EF%BD%9C%20Proton%20Mail%20-%205%20February%202025%20%5B00ca5037fd9d410ab38d11803a4d2d33%5D.mp4?alt=media&token=8b314bbd-1340-46b0-9278-fcf32392b55f',
-      thumbnailUrl: 'https://example.com/thumbnail.jpg',
+      thumbnailUrl: 'https://firebasestorage.googleapis.com/v0/b/tikandtok-684cb.firebasestorage.app/o/thumbnails%2Ftest_video_thumbnail.png?alt=media&token=8865b4f0-593c-4b20-9d5d-52ee231dd75a',
       title: 'Flutter Clean Architecture Implementation',
       platform: 'youtube' as const,
       createdAt: FieldValue.serverTimestamp(),
