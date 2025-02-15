@@ -25,15 +25,18 @@ export interface VideoMetadata {
   description?: string;
 }
 
-export interface VideoDocument extends VideoMetadata {
+export interface VideoDocument {
+  url: string;
+  thumbnailUrl: string;
+  title: string;
+  description: string;
   createdAt: Timestamp | FieldValue;
   updatedAt: Timestamp | FieldValue;
   likedBy: string[];
   savedBy: string[];
+  likes: number;
   comments: number;
-  tweetId?: string;
   userId: string;
-  analysis?: VideoAnalysis;
 }
 
 interface BatchProcessingMessage {
@@ -287,15 +290,14 @@ export const processTweetBatch = functions.pubsub
               url: metadata.url,
               thumbnailUrl: metadata.thumbnailUrl,
               title: metadata.title,
-              platform: metadata.platform,
+              description: metadata.description || '',
               createdAt: FieldValue.serverTimestamp(),
               updatedAt: FieldValue.serverTimestamp(),
               likedBy: [],
               savedBy: [],
+              likes: 0,
               comments: 0,
-              tweetId: tweetDoc.id,
               userId: userId,
-              ...(metadata.description && { description: metadata.description })
             };
 
             // Add to batch
@@ -597,15 +599,30 @@ export const handleTechnicalDiscussion = functions.firestore
   .onCreate(async (snap, context) => {
     const { videoId, commentId } = context.params;
     const commentData = snap.data();
-    const { text } = commentData;
-    const db = getFirestore();
+    console.log('Raw comment data:', JSON.stringify(commentData, null, 2));
 
-    // Only proceed if comment contains "just submit"
-    if (!text.toLowerCase().includes('just submit')) {
+    // Defensive check for commentData and message
+    if (!commentData) {
+      console.error('Comment data is undefined');
       return;
     }
 
-    console.log(`Processing technical implementation question for video ${videoId}`);
+    const message = commentData.message;
+    const userId = commentData.userId;
+    if (!message) {
+      console.error('Message is undefined in comment data');
+      return;
+    }
+
+    const db = getFirestore();
+
+    // Only proceed if comment contains "just submit"
+    if (!message.toLowerCase().includes('just submit')) {
+      console.log('Comment does not contain "just submit":', message);
+      return;
+    }
+
+    console.log(`Processing technical question for video ${videoId}`);
 
     try {
       // Get analysis from video_analysis collection
@@ -622,48 +639,81 @@ export const handleTechnicalDiscussion = functions.firestore
         throw new Error(`Technical analysis failed: ${analysis.error}`);
       }
 
-      // Generate response using the analysis data
-      const response = `Technical Implementation Analysis:
+      // Extract the actual question by removing "just submit"
+      const question = message.replace(/just submit/i, '').trim();
+      
+      // Initialize Vertex AI with Gemini Pro model for question answering
+      const questionModel = vertexAI.preview.getGenerativeModel({
+        model: 'gemini-pro',
+        generationConfig: {
+          maxOutputTokens: 1024,
+          temperature: 0.3,
+          topP: 0.8,
+          topK: 40,
+        },
+      });
 
-${analysis.implementationOverview ? `Overview:
-${analysis.implementationOverview}
+      // Create a prompt that includes both the question and the technical context
+      const prompt = `You are a technical assistant helping with a video showcase platform.
+You have access to the technical analysis of a video, and need to answer a user's question about it.
 
-` : ''}${analysis.techStack.length > 0 ? `Tech Stack:
-${analysis.techStack.map((tech: string) => `• ${tech}`).join('\n')}
+Technical Analysis Context:
+Implementation Overview: ${analysis.implementationOverview || 'Not available'}
+Technical Details: ${analysis.technicalDetails || 'Not available'}
+Tech Stack: ${analysis.techStack.join(', ')}
+Architecture Patterns: ${analysis.architecturePatterns.join(', ')}
+Best Practices: ${analysis.bestPractices.join(', ')}
 
-` : ''}${analysis.architecturePatterns.length > 0 ? `Architecture Patterns:
-${analysis.architecturePatterns.map((pattern: string) => `• ${pattern}`).join('\n')}
+User's Question: ${question}
 
-` : ''}${analysis.technicalDetails ? `Technical Details:
-${analysis.technicalDetails}
+Please provide a focused, technical response that:
+1. Directly addresses the user's question
+2. Uses the relevant information from the technical analysis
+3. Maintains a professional and technical tone
+4. Includes specific examples or details when available
+5. Acknowledges if certain information is not available in the analysis
 
-` : ''}${analysis.bestPractices.length > 0 ? `Best Practices:
-${analysis.bestPractices.map((practice: string) => `• ${practice}`).join('\n')}
+Keep the response concise but technically precise.`;
 
-` : ''}Feel free to ask for more specific details about any aspect of the implementation.`;
+      // Get response from Gemini
+      const result = await questionModel.generateContent({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      });
+      
+      const response = await result.response;
+      if (!response.candidates?.[0]?.content?.parts) {
+        throw new Error('Invalid response format from Gemini');
+      }
+      
+      const responseText = response.candidates[0].content.parts
+        .map(part => part.text)
+        .join('')
+        .trim();
 
       // Add response as a regular reply comment
       await db.collection('videos').doc(videoId)
         .collection('comments').add({
-          text: response,
-          userId: 'system',
-          parentId: commentId,
-          createdAt: Timestamp.now(),
+          message: responseText,
+          userId: userId,
+          videoId: videoId,
+          timestamp: Timestamp.now(),
+          parentCommentId: commentId,
         });
 
-      console.log('Technical implementation details provided successfully');
+      console.log('Technical response provided successfully');
 
     } catch (error) {
-      console.error('Error providing technical implementation details:', error);
+      console.error('Error providing technical response:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       
       // Add error response as a comment
       await db.collection('videos').doc(videoId)
         .collection('comments').add({
-          text: `Sorry, I couldn't provide technical implementation details: ${errorMessage}`,
-          userId: 'system',
-          parentId: commentId,
-          createdAt: Timestamp.now(),
+          message: `Sorry, I couldn't provide technical details: ${errorMessage}`,
+          userId: userId,
+          videoId: videoId,
+          timestamp: Timestamp.now(),
+          parentCommentId: commentId,
         });
     }
   }); 

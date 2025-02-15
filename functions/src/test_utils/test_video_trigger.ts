@@ -103,14 +103,14 @@ async function createTestVideo(config: TestConfig = defaultConfig) {
       url: 'https://firebasestorage.googleapis.com/v0/b/tikandtok-684cb.firebasestorage.app/o/videos%2F(27)%20Inbox%20%EF%BD%9C%20marcus.monterroso%40gauntletai.com%20%EF%BD%9C%20Proton%20Mail%20-%205%20February%202025%20%5B00ca5037fd9d410ab38d11803a4d2d33%5D.mp4?alt=media&token=8b314bbd-1340-46b0-9278-fcf32392b55f',
       thumbnailUrl: 'https://firebasestorage.googleapis.com/v0/b/tikandtok-684cb.firebasestorage.app/o/thumbnails%2Ftest_video_thumbnail.png?alt=media&token=8865b4f0-593c-4b20-9d5d-52ee231dd75a',
       title: 'Flutter Clean Architecture Implementation',
-      platform: 'youtube' as const,
+      description: 'A technical showcase of Flutter clean architecture implementation',
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
       likedBy: [],
       savedBy: [],
+      likes: 0,
       comments: 0,
-      userId: 'sYkDKhNOQXdDNYPJ0krj',
-      description: 'A technical showcase of Flutter clean architecture implementation'
+      userId: 'sYkDKhNOQXdDNYPJ0krj'
     };
 
     console.log('Test video object prepared:', testVideo);
@@ -123,17 +123,41 @@ async function createTestVideo(config: TestConfig = defaultConfig) {
     console.log('Creating video document...');
     const docRef = await db.collection('videos').add(testVideo);
     console.log(`Test video created with ID: ${docRef.id}`);
+
+    // Create the comments subcollection
+    const commentsRef = docRef.collection('comments');
+    // We don't need to add any comments, but this ensures the collection exists
+    console.log('Comments collection path:', commentsRef.path);
+
+    // Verify the document and its structure
+    const videoDoc = await docRef.get();
+    console.log('Video document exists:', videoDoc.exists);
+    if (videoDoc.exists) {
+      console.log('Video data:', videoDoc.data());
+      
+      // List collections to verify structure
+      const collections = await docRef.listCollections();
+      console.log('Document collections:', collections.map(col => col.id));
+    }
     
     // Wait for the complete analysis
     console.log('Waiting for analysis to complete...');
     const analysisDoc = await waitForAnalysisCompletion(db, docRef.id);
     
-    if (analysisDoc && analysisDoc.exists) {
-      const data = analysisDoc.data();
-      if (data?.error) {
-        console.log('Analysis completed with error:', data.error);
-      } else {
-        console.log('Analysis completed successfully:', data);
+    // Verify analysis document exists
+    const verifyAnalysis = await db.collection('video_analysis').doc(docRef.id).get();
+    console.log('Analysis document exists:', verifyAnalysis.exists);
+    if (verifyAnalysis.exists) {
+      console.log('Analysis data:', verifyAnalysis.data());
+    } else {
+      // Check if it might be in a different collection
+      console.log('Checking other possible collections...');
+      const collections = ['video_analysis', 'videoAnalysis', 'analysis'];
+      for (const collection of collections) {
+        const doc = await db.collection(collection).doc(docRef.id).get();
+        if (doc.exists) {
+          console.log(`Found document in ${collection}:`, doc.data());
+        }
       }
     }
 
